@@ -32,6 +32,7 @@ func New(size int, gcdur time.Duration) *Memory {
 		items:  make(map[string]*item, size),
 		size:   size,
 		ticker: time.NewTicker(gcdur),
+		done:   make(chan struct{}, 1),
 	}
 
 	go func(mem *Memory) {
@@ -64,7 +65,7 @@ func (mem *Memory) Get(key string) (interface{}, bool) {
 		return nil, false
 	}
 
-	return i, found
+	return i.val, found
 }
 
 // Set 设置或是添加缓存项。
@@ -110,6 +111,7 @@ func (mem *Memory) Clear() error {
 // Close 关闭整个缓存系统
 func (mem *Memory) Close() error {
 	mem.ticker.Stop()
+	mem.items = nil
 	close(mem.done)
 
 	return nil
