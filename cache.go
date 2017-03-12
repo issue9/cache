@@ -23,6 +23,6 @@ type Cache interface {
 	// 清除所有的缓存内容
 	Clear() error
 
-	// 关闭整修缓存系统
+	// 关闭整个缓存系统
 	Close() error
 }
