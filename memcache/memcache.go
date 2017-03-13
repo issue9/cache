@@ -19,10 +19,10 @@ type Memcache struct {
 }
 
 // New 声明一个新的 Memcache 实例。
-func New(errlog *log.Logger, servers ...string) *Memcache {
+func New(errlog *log.Logger, client *gm.Client) *Memcache {
 	return &Memcache{
 		errlog: errlog,
-		client: gm.New(servers...),
+		client: client,
 	}
 }
 
