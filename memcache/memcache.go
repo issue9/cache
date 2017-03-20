@@ -65,6 +65,18 @@ func (mem *Memcache) Set(key string, val interface{}, timeout time.Duration) err
 	})
 }
 
+// Incr 增加计数
+func (mem *Memcache) Incr(key string) error {
+	_, err := mem.client.Increment(key, 1)
+	return err
+}
+
+// Decr 减小计数
+func (mem *Memcache) Decr(key string) error {
+	_, err := mem.client.Decrement(key, 1)
+	return err
+}
+
 // Delete 删除一个缓存项。
 func (mem *Memcache) Delete(key string) error {
 	return mem.client.Delete(key)

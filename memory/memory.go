@@ -7,6 +7,8 @@ package memory
 import (
 	"sync"
 	"time"
+
+	"github.com/issue9/cache"
 )
 
 // Memory 内存类型的缓存
@@ -51,6 +53,16 @@ func New(size int, gcdur time.Duration) *Memory {
 
 // Get 获取缓存项。
 func (mem *Memory) Get(key string) (interface{}, bool) {
+	i, found := mem.findItem(key)
+	if !found {
+		return nil, false
+	}
+
+	return i.val, true
+}
+
+// findItem
+func (mem *Memory) findItem(key string) (*item, bool) {
 	mem.lock.RLock()
 	i, found := mem.items[key]
 	mem.lock.RUnlock()
@@ -65,7 +77,7 @@ func (mem *Memory) Get(key string) (interface{}, bool) {
 		return nil, false
 	}
 
-	return i.val, found
+	return i, true
 }
 
 // Set 设置或是添加缓存项。
@@ -97,6 +109,87 @@ func (mem *Memory) Exists(key string) bool {
 	mem.lock.RUnlock()
 
 	return exists
+}
+
+// Incr 增加计数
+func (mem *Memory) Incr(key string) error {
+	item, found := mem.findItem(key)
+	if !found {
+		return cache.ErrKeyNotExists
+	}
+
+	switch v := item.val.(type) {
+	case int:
+		item.val = v + 1
+	case int64:
+		item.val = v + 1
+	case int32:
+		item.val = v + 1
+	case int16:
+		item.val = v + 1
+	case int8:
+		item.val = v + 1
+	case uint:
+		item.val = v + 1
+	case uint64:
+		item.val = v + 1
+	case uint32:
+		item.val = v + 1
+	case uint16:
+		item.val = v + 1
+	case uint8:
+		item.val = v + 1
+	}
+
+	return nil
+}
+
+// Decr 减小计数
+func (mem *Memory) Decr(key string) error {
+	item, found := mem.findItem(key)
+	if !found {
+		return cache.ErrKeyNotExists
+	}
+
+	switch v := item.val.(type) {
+	case int:
+		item.val = v - 1
+	case int64:
+		item.val = v - 1
+	case int32:
+		item.val = v - 1
+	case int16:
+		item.val = v - 1
+	case int8:
+		item.val = v - 1
+	case uint:
+		if v < 1 {
+			return cache.ErrUintNotAllowLessThanZero
+		}
+		item.val = v - 1
+	case uint64:
+		if v < 1 {
+			return cache.ErrUintNotAllowLessThanZero
+		}
+		item.val = v - 1
+	case uint32:
+		if v < 1 {
+			return cache.ErrUintNotAllowLessThanZero
+		}
+		item.val = v - 1
+	case uint16:
+		if v < 1 {
+			return cache.ErrUintNotAllowLessThanZero
+		}
+		item.val = v - 1
+	case uint8:
+		if v < 1 {
+			return cache.ErrUintNotAllowLessThanZero
+		}
+		item.val = v - 1
+	}
+
+	return nil
 }
 
 // Clear 清除所有的缓存内容

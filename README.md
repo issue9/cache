@@ -1,8 +1,10 @@
 cache [![Build Status](https://travis-ci.org/issue9/cache.svg?branch=master)](https://travis-ci.org/issue9/cache)
 ======
 
-一组缓存接口，目前只实现了基于内存的缓存，后续会再添加 memcache 和 redis。
+一组缓存接口，目前只实现了基于内存的缓存，后续会再添加 redis。
 
+** memory.Set 可以存储任意类型，memcache.Set 只能存储字符串类型，memcache.Incr 不能为负数。
+相同的接口，却达不到相同的功能，不如不做！**
 
 ### 安装
 
