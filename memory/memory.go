@@ -1,6 +1,4 @@
-// Copyright 2017 by caixw, All rights reserved.
-// Use of this source code is governed by a MIT
-// license that can be found in the LICENSE file.
+// SPDX-License-Identifier: MIT
 
 package memory
 
@@ -15,7 +13,6 @@ import (
 type Memory struct {
 	lock   sync.RWMutex
 	items  map[string]*item
-	size   int
 	ticker *time.Ticker
 	done   chan struct{}
 }
@@ -32,7 +29,6 @@ type item struct {
 func New(size int, gcdur time.Duration) *Memory {
 	mem := &Memory{
 		items:  make(map[string]*item, size),
-		size:   size,
 		ticker: time.NewTicker(gcdur),
 		done:   make(chan struct{}, 1),
 	}
@@ -195,9 +191,8 @@ func (mem *Memory) Decr(key string) error {
 // Clear 清除所有的缓存内容
 func (mem *Memory) Clear() error {
 	mem.lock.Lock()
-	mem.items = make(map[string]*item, mem.size)
+	mem.items = make(map[string]*item, len(mem.items))
 	mem.lock.Unlock()
-
 	return nil
 }
 

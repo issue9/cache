@@ -1,6 +1,4 @@
-// Copyright 2017 by caixw, All rights reserved.
-// Use of this source code is governed by a MIT
-// license that can be found in the LICENSE file.
+// SPDX-License-Identifier: MIT
 
 package cache
 
@@ -17,13 +15,13 @@ var (
 
 // Cache 一个统一的缓存接口
 type Cache interface {
-	// 获取缓存项。
+	// 获取缓存项
 	Get(key string) (val interface{}, found bool)
 
-	// 设置或是添加缓存项。
+	// 设置或是添加缓存项
 	Set(key string, val interface{}, timeout time.Duration) error
 
-	// 删除一个缓存项。
+	// 删除一个缓存项
 	Delete(key string) error
 
 	// 判断一个缓存项是否存在

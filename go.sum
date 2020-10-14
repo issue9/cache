@@ -1,0 +1,4 @@
+github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b h1:L/QXpzIa3pOvUGt1D1lA5KjYhPBAN/3iWdP7xeFS9F0=
+github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b/go.mod h1:H0wQNHz2YrLsuXOZozoeDmnHXkNCRmMW0gwFWDfEZDA=
+github.com/issue9/assert v1.4.1 h1:gUtOpMTeaE4JTe9kACma5foOHBvVt1p5XTFrULDwdXI=
+github.com/issue9/assert v1.4.1/go.mod h1:Yktk83hAVl1SPSYtd9kjhBizuiBIqUQyj+D5SE2yjVY=

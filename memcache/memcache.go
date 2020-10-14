@@ -1,6 +1,4 @@
-// Copyright 2017 by caixw, All rights reserved.
-// Use of this source code is governed by a MIT
-// license that can be found in the LICENSE file.
+// SPDX-License-Identifier: MIT
 
 package memcache
 
@@ -12,13 +10,13 @@ import (
 	gm "github.com/bradfitz/gomemcache/memcache"
 )
 
-// Memcache 实现了 memcache 的 cache 接口。
+// Memcache 实现了 memcache 的 Cache 接口
 type Memcache struct {
 	errlog *log.Logger
 	client *gm.Client
 }
 
-// New 声明一个新的 Memcache 实例。
+// New 声明一个新的 Memcache 实例
 func New(errlog *log.Logger, client *gm.Client) *Memcache {
 	return &Memcache{
 		errlog: errlog,
