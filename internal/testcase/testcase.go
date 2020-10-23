@@ -13,25 +13,25 @@ import (
 
 // Test 测试 Cache 基本功能
 func Test(a *assert.Assertion, c cache.Cache) {
-	v, found := c.Get("not_exists")
-	a.False(found, "找到了一个并不存在的值").
+	v, err := c.Get("not_exists")
+	a.Equal(err, cache.ErrCacheMiss, "找到了一个并不存在的值").
 		Nil(v, "查找一个并不存在的值，且有返回。")
 
 	a.NotError(c.Set("k1", 123, cache.Forever))
-	v, found = c.Get("k1")
-	a.True(found, "Forever 的值未找到").
+	v, err = c.Get("k1")
+	a.NotError(err, "Forever 返回未知错误 %s", err).
 		Equal(v, 123, "无法正常获取 k1 的值")
 
 	// 重设置 k1
 	a.NotError(c.Set("k1", uint(789), 1*time.Hour))
-	v, found = c.Get("k1")
-	a.True(found, "1*time.Hover 的值 k1 未找到").
+	v, err = c.Get("k1")
+	a.NotError(err, "1*time.Hover 的值 k1 返回错误信息 %s", err).
 		Equal(v, 789, "无法正常获取 k1 的值")
 
 	// 被 delete 删除
 	a.NotError(c.Delete("k1"))
-	v, found = c.Get("k1")
-	a.False(found, "k1 并未被回收").
+	v, err = c.Get("k1")
+	a.Equal(err, cache.ErrCacheMiss, "k1 并未被回收").
 		Nil(v, "被删除之后值并未为空：%+v", v)
 
 	// 超时被回收
@@ -68,7 +68,7 @@ func TestObject(a *assert.Assertion, c cache.Cache) {
 	obj2 := &o{Name: "test", age: 5}
 
 	a.NotError(c.Set("obj", obj, cache.Forever))
-	v, found := c.Get("obj")
-	a.True(found).
+	v, err := c.Get("obj")
+	a.NotError(err).
 		Equal(v, obj2, "obj not equal\nv1:%+v\nv2:%+v\n", v, obj2)
 }

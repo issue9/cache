@@ -25,21 +25,19 @@ func New(errlog *log.Logger, client *gm.Client) cache.Cache {
 	}
 }
 
-func (mem *memcache) Get(key string) (val interface{}, found bool) {
+func (mem *memcache) Get(key string) (val interface{}, err error) {
 	item, err := mem.client.Get(key)
 	if err == gm.ErrCacheMiss {
-		return nil, false
+		return nil, cache.ErrCacheMiss
 	} else if err != nil {
-		mem.errlog.Println(err)
-		return nil, false
+		return nil, err
 	}
 
 	if err := cache.GoDecode(item.Value, &val); err != nil {
-		mem.errlog.Println(err)
-		return nil, false
+		return nil, err
 	}
 
-	return val, true
+	return val, nil
 }
 
 func (mem *memcache) Set(key string, val interface{}, timeout time.Duration) error {
@@ -66,7 +64,7 @@ func (mem *memcache) Delete(key string) error {
 
 func (mem *memcache) Exists(key string) bool {
 	_, found := mem.Get(key)
-	return found
+	return found != cache.ErrCacheMiss
 }
 
 func (mem *memcache) Clear() error {

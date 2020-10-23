@@ -56,13 +56,13 @@ func New(size int, gc time.Duration) cache.Cache {
 	return mem
 }
 
-func (mem *memory) Get(key string) (interface{}, bool) {
+func (mem *memory) Get(key string) (interface{}, error) {
 	i, found := mem.findItem(key)
 	if !found {
-		return nil, false
+		return nil, cache.ErrCacheMiss
 	}
 
-	return i.val, true
+	return i.val, nil
 }
 
 func (mem *memory) findItem(key string) (*item, bool) {
