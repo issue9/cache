@@ -75,7 +75,7 @@ func (mem *memcache) Clear() error {
 }
 
 func (mem *memcache) Close() error {
-	mem.Clear()
+	// NOTE: 关闭服务，不能清除服务器的内容
 	mem.client = nil
 	return nil
 }

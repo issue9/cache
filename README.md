@@ -10,6 +10,7 @@ cache
 -----------|--------------------------------------|-----
 memory     | 内存                                 | [![memory](https://github.com/issue9/cache/workflows/memory/badge.svg)](https://github.com/issue9/cache/actions?query=workflow%3Amemory)
 memcached  | github.com/bradfitz/gomemcache       | [![memcache](https://github.com/issue9/cache/workflows/memcached/badge.svg)](https://github.com/issue9/cache/actions?query=workflow%3Amemcached)
+redis      | github.com/gomodule/redigo           | [![memcache](https://github.com/issue9/cache/workflows/redis/badge.svg)](https://github.com/issue9/cache/actions?query=workflow%3Aredis)
 
 ```go
 // memory
