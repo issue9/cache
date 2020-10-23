@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 
+// Package memcache memcached 客户端的 cache 接口实现
 package memcache
 
 import (
-	"log"
 	"time"
 
 	gm "github.com/bradfitz/gomemcache/memcache"
@@ -13,14 +13,17 @@ import (
 
 // memcache 实现了 memcache 的 Cache 接口
 type memcache struct {
-	errlog *log.Logger
 	client *gm.Client
 }
 
+// NewFromServers 声明一个新的 Memcache 实例
+func NewFromServers(addr ...string) cache.Cache {
+	return New(gm.New(addr...))
+}
+
 // New 声明一个新的 Memcache 实例
-func New(errlog *log.Logger, client *gm.Client) cache.Cache {
+func New(client *gm.Client) cache.Cache {
 	return &memcache{
-		errlog: errlog,
 		client: client,
 	}
 }
