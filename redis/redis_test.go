@@ -18,6 +18,27 @@ var _ cache.Cache = &redis{}
 func TestRedis(t *testing.T) {
 	a := assert.New(t)
 
+	c := New(dial(a))
+	a.NotNil(c)
+
+	testcase.Test(a, c)
+}
+
+func TestRedis_Close(t *testing.T) {
+	a := assert.New(t)
+
+	c := New(dial(a))
+	a.NotNil(c)
+	a.NotError(c.Set("key", "val", cache.Forever))
+	a.NotError(c.Close())
+
+	c = New(dial(a))
+	a.NotNil(c)
+	val, err := c.Get("key")
+	a.NotError(err).Equal(val, "val")
+}
+
+func dial(a *assert.Assertion) redigo.Conn {
 	options := []redigo.DialOption{
 		redigo.DialConnectTimeout(time.Second),
 		redigo.DialReadTimeout(time.Second),
@@ -26,8 +47,5 @@ func TestRedis(t *testing.T) {
 	conn, err := redigo.Dial("tcp", "localhost:6379", options...)
 	a.NotError(err).NotNil(conn)
 
-	c := New(conn)
-	a.NotNil(c)
-
-	testcase.Test(a, c)
+	return conn
 }

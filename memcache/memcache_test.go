@@ -21,3 +21,17 @@ func TestMemcache(t *testing.T) {
 
 	testcase.Test(a, c)
 }
+
+func TestMemcache_Close(t *testing.T) {
+	a := assert.New(t)
+
+	c := NewFromServers("localhost:11211")
+	a.NotNil(c)
+	a.NotError(c.Set("key", "val", cache.Forever))
+	a.NotError(c.Close())
+
+	c = NewFromServers("localhost:11211")
+	a.NotNil(c)
+	val, err := c.Get("key")
+	a.NotError(err).Equal(val, "val")
+}
