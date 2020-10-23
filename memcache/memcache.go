@@ -3,96 +3,77 @@
 package memcache
 
 import (
-	"errors"
 	"log"
 	"time"
 
 	gm "github.com/bradfitz/gomemcache/memcache"
+
+	"github.com/issue9/cache"
 )
 
-// Memcache 实现了 memcache 的 Cache 接口
-type Memcache struct {
+// memcache 实现了 memcache 的 Cache 接口
+type memcache struct {
 	errlog *log.Logger
 	client *gm.Client
 }
 
 // New 声明一个新的 Memcache 实例
-func New(errlog *log.Logger, client *gm.Client) *Memcache {
-	return &Memcache{
+func New(errlog *log.Logger, client *gm.Client) cache.Cache {
+	return &memcache{
 		errlog: errlog,
 		client: client,
 	}
 }
 
-// Get 获取缓存项。
-//
-// memcache 只能返回 []byte，用户得自行转换其类型
-func (mem *Memcache) Get(key string) (interface{}, bool) {
+func (mem *memcache) Get(key string) (val interface{}, found bool) {
 	item, err := mem.client.Get(key)
-	if err != nil {
+	if err == gm.ErrCacheMiss {
+		return nil, false
+	} else if err != nil {
 		mem.errlog.Println(err)
 		return nil, false
 	}
 
-	return item.Value, true
-}
-
-// Set 设置或是添加缓存项。
-//
-// memcache 中的 val 只能是 []byte、string、[]rune 三种类型，用户得自行转换其类型
-func (mem *Memcache) Set(key string, val interface{}, timeout time.Duration) error {
-	var v []byte
-
-	switch vv := val.(type) {
-	case string:
-		v = []byte(vv)
-	case []byte:
-		v = vv
-	case []rune:
-		v = []byte(string(vv))
-	default:
-		return errors.New("不允许的 val 类型")
+	if err := cache.GoDecode(item.Value, &val); err != nil {
+		mem.errlog.Println(err)
+		return nil, false
 	}
 
-	expire := int32(timeout.Seconds())
+	return val, true
+}
+
+func (mem *memcache) Set(key string, val interface{}, timeout time.Duration) error {
+	bs, err := cache.GoEncode(&val)
+	if err != nil {
+		return err
+	}
+
+	exp := int32(timeout.Seconds())
+	if exp < 1 {
+		exp = 1
+	}
 
 	return mem.client.Set(&gm.Item{
 		Key:        key,
-		Value:      v,
-		Expiration: expire,
+		Value:      bs,
+		Expiration: exp,
 	})
 }
 
-// Incr 增加计数
-func (mem *Memcache) Incr(key string) error {
-	_, err := mem.client.Increment(key, 1)
-	return err
-}
-
-// Decr 减小计数
-func (mem *Memcache) Decr(key string) error {
-	_, err := mem.client.Decrement(key, 1)
-	return err
-}
-
-// Delete 删除一个缓存项。
-func (mem *Memcache) Delete(key string) error {
+func (mem *memcache) Delete(key string) error {
 	return mem.client.Delete(key)
 }
 
-// Exists 判断一个缓存项是否存在
-func (mem *Memcache) Exists(key string) bool {
+func (mem *memcache) Exists(key string) bool {
 	_, found := mem.Get(key)
 	return found
 }
 
-// Clear 清除所有的缓存内容
-func (mem *Memcache) Clear() error {
+func (mem *memcache) Clear() error {
 	return mem.client.DeleteAll()
 }
 
-// Close 关闭整个缓存系统
-func (mem *Memcache) Close() error {
+func (mem *memcache) Close() error {
 	mem.Clear()
 	mem.client = nil
 	return nil

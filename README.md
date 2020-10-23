@@ -3,7 +3,14 @@ cache
 [![GoDoc](https://godoc.org/github.com/issue9/cache?status.svg)](https://godoc.org/github.com/issue9/cache)
 ======
 
-一组缓存接口，目前只实现了基于内存的缓存，后续会再添加 redis。
+一组缓存接口
+
+目前支持以下组件：
+
+名称       | 包                                   | 状态
+-----------|--------------------------------------|-----
+memory     | 内存                                 | [![memory](https://github.com/issue9/cache/workflows/Memory/badge.svg)](https://github.com/issue9/cache/actions?query=workflow%3AMemory)
+memcached  | github.com/bradfitz/gomemcache       | [![memcache](https://github.com/issue9/cache/workflows/Memcache/badge.svg)](https://github.com/issue9/cache/actions?query=workflow%3AMemcache)
 
 安装
 ---
