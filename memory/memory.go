@@ -116,6 +116,10 @@ func (mem *memory) gc() {
 	now := time.Now()
 
 	mem.items.Range(func(key, val interface{}) bool {
+		if val == nil {
+			return true
+		}
+
 		if v := val.(*item); v.isExpired(now) {
 			mem.items.Delete(key)
 		}
