@@ -4,8 +4,6 @@
 package memcache
 
 import (
-	"time"
-
 	gm "github.com/bradfitz/gomemcache/memcache"
 
 	"github.com/issue9/cache"
@@ -43,21 +41,16 @@ func (mem *memcache) Get(key string) (val interface{}, err error) {
 	return val, nil
 }
 
-func (mem *memcache) Set(key string, val interface{}, timeout time.Duration) error {
+func (mem *memcache) Set(key string, val interface{}, seconds int) error {
 	bs, err := cache.GoEncode(&val)
 	if err != nil {
 		return err
 	}
 
-	exp := int32(timeout.Seconds())
-	if exp < 1 {
-		exp = 1
-	}
-
 	return mem.client.Set(&gm.Item{
 		Key:        key,
 		Value:      bs,
-		Expiration: exp,
+		Expiration: int32(seconds),
 	})
 }
 

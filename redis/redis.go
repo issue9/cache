@@ -4,8 +4,6 @@
 package redis
 
 import (
-	"time"
-
 	redigo "github.com/gomodule/redigo/redis"
 
 	"github.com/issue9/cache"
@@ -37,22 +35,18 @@ func (redis *redis) Get(key string) (val interface{}, err error) {
 	return val, nil
 }
 
-func (redis *redis) Set(key string, val interface{}, timeout time.Duration) error {
+func (redis *redis) Set(key string, val interface{}, seconds int) error {
 	bs, err := cache.GoEncode(&val)
 	if err != nil {
 		return err
 	}
 
-	if timeout == cache.Forever {
+	if seconds == 0 {
 		_, err = redis.conn.Do("SET", key, string(bs))
 		return err
 	}
 
-	exp := int32(timeout.Seconds())
-	if exp < 1 {
-		exp = 1
-	}
-	_, err = redis.conn.Do("SET", key, string(bs), "EX", exp)
+	_, err = redis.conn.Do("SET", key, string(bs), "EX", seconds)
 	return err
 }
 

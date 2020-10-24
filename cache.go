@@ -3,10 +3,7 @@
 // Package cache 统一的缓存接口
 package cache
 
-import (
-	"errors"
-	"time"
-)
+import "errors"
 
 // Forever 永不过时
 const Forever = 0
@@ -22,7 +19,9 @@ type Cache interface {
 	Get(key string) (interface{}, error)
 
 	// 设置或是添加缓存项
-	Set(key string, val interface{}, timeout time.Duration) error
+	//
+	// seconds 表示过了该时间，缓存项将被回收。如果该值为 0，该值永远不会回收。
+	Set(key string, val interface{}, seconds int) error
 
 	// 删除一个缓存项
 	Delete(key string) error

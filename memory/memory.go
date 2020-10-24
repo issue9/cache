@@ -28,7 +28,7 @@ func (i *item) update(val interface{}) {
 }
 
 func (i *item) isExpired(now time.Time) bool {
-	return i.dur != cache.Forever && i.expire.Before(now)
+	return i.dur != 0 && i.expire.Before(now)
 }
 
 // New 声明一个内存缓存
@@ -73,13 +73,14 @@ func (mem *memory) findItem(key string) (*item, bool) {
 	return i.(*item), true
 }
 
-func (mem *memory) Set(key string, val interface{}, timeout time.Duration) error {
+func (mem *memory) Set(key string, val interface{}, seconds int) error {
 	i, found := mem.findItem(key)
 	if !found {
+		dur := time.Second * time.Duration(seconds)
 		mem.items.Store(key, &item{
 			val:    val,
-			dur:    timeout,
-			expire: time.Now().Add(timeout),
+			dur:    dur,
+			expire: time.Now().Add(dur),
 		})
 		return nil
 	}

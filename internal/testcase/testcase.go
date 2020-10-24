@@ -23,7 +23,7 @@ func Test(a *assert.Assertion, c cache.Cache) {
 		Equal(v, 123, "无法正常获取 k1 的值")
 
 	// 重设置 k1
-	a.NotError(c.Set("k1", uint(789), 1*time.Hour))
+	a.NotError(c.Set("k1", uint(789), 60))
 	v, err = c.Get("k1")
 	a.NotError(err, "1*time.Hover 的值 k1 返回错误信息 %s", err).
 		Equal(v, 789, "无法正常获取 k1 的值")
@@ -35,25 +35,25 @@ func Test(a *assert.Assertion, c cache.Cache) {
 		Nil(v, "被删除之后值并未为空：%+v", v)
 
 	// 超时被回收
-	a.NotError(c.Set("k1", 123, time.Millisecond*10))
-	a.NotError(c.Set("k2", 456, time.Millisecond*10))
-	a.NotError(c.Set("k3", 789, time.Millisecond*10))
-	time.Sleep(1*time.Second + 500*time.Microsecond)
+	a.NotError(c.Set("k1", 123, 1))
+	a.NotError(c.Set("k2", 456, 1))
+	a.NotError(c.Set("k3", 789, 1))
+	time.Sleep(2 * time.Second)
 	a.False(c.Exists("k1"), "k1 超时且未被回收")
 	a.False(c.Exists("k2"), "k2 超时且未被回收")
 	a.False(c.Exists("k3"), "k3 超时且未被回收")
 
 	// Clear
-	a.NotError(c.Set("k1", 123, time.Millisecond*10))
-	a.NotError(c.Set("k2", 456, time.Millisecond*10))
-	a.NotError(c.Set("k3", 789, time.Millisecond*10))
+	a.NotError(c.Set("k1", 123, 1))
+	a.NotError(c.Set("k2", 456, 1))
+	a.NotError(c.Set("k3", 789, 1))
 	a.NotError(c.Clear())
 	a.False(c.Exists("k1"), "clear 之后 k1 依然存在").
 		False(c.Exists("k2"), "clear 之后 k2 依然存在").
 		False(c.Exists("k3"), "clear 之后 k3 依然存在")
 
 	// Close
-	a.NotError(c.Set("k1", 123, time.Millisecond*10))
+	a.NotError(c.Set("k1", 123, 1))
 	a.NotError(c.Close())
 }
 
