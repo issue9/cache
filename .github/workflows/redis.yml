@@ -38,7 +38,7 @@ jobs:
       run: go vet -v ./...
         
     - name: Test
-      run: go test -v -coverprofile=coverage.txt ./redis/. -covermode=atomic
+      run: go test -v -race -coverprofile=coverage.txt ./redis/. -covermode=atomic
       
     - name: Upload coverage to Codecov  
       uses: codecov/codecov-action@v1

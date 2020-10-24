@@ -100,13 +100,16 @@ func (mem *memory) Exists(key string) bool {
 }
 
 func (mem *memory) Clear() error {
-	mem.items = &sync.Map{}
+	mem.items.Range(func(key, val interface{}) bool {
+		mem.items.Delete(key)
+		return true
+	})
 	return nil
 }
 
 func (mem *memory) Close() error {
 	mem.ticker.Stop()
-	mem.items = nil
+	mem.Clear()
 	close(mem.done)
 
 	return nil
@@ -116,10 +119,6 @@ func (mem *memory) gc() {
 	now := time.Now()
 
 	mem.items.Range(func(key, val interface{}) bool {
-		if val == nil {
-			return true
-		}
-
 		if v := val.(*item); v.isExpired(now) {
 			mem.items.Delete(key)
 		}
