@@ -16,7 +16,7 @@ var _ cache.Cache = &memory{}
 
 func TestMemory(t *testing.T) {
 	a := assert.New(t)
-	c := New(10, 50*time.Millisecond)
+	c := New(10, 500*time.Millisecond)
 	a.NotNil(c)
 
 	testcase.Test(a, c)
