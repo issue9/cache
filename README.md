@@ -1,4 +1,5 @@
 cache
+[![codecov](https://codecov.io/gh/issue9/cache/branch/master/graph/badge.svg)](https://codecov.io/gh/issue9/cache)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/issue9/cache)](https://pkg.go.dev/github.com/issue9/cache)
 ======
 

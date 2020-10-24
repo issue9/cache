@@ -43,11 +43,15 @@ func (redis *redis) Set(key string, val interface{}, timeout time.Duration) erro
 		return err
 	}
 
+	if timeout == cache.Forever {
+		_, err = redis.conn.Do("SET", key, string(bs))
+		return err
+	}
+
 	exp := int32(timeout.Seconds())
 	if exp < 1 {
 		exp = 1
 	}
-
 	_, err = redis.conn.Do("SET", key, string(bs), "EX", exp)
 	return err
 }
