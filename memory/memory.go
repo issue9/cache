@@ -35,7 +35,7 @@ func (i *item) isExpired(now time.Time) bool {
 //
 // size 表示初始时的记录数量；
 // gc 表示执行回收操作的间隔。
-func New(size int, gc time.Duration) cache.Cache {
+func New(gc time.Duration) cache.Cache {
 	mem := &memory{
 		items:  &sync.Map{},
 		ticker: time.NewTicker(gc),
