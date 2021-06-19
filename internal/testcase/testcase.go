@@ -20,13 +20,13 @@ func Test(a *assert.Assertion, c cache.Cache) {
 	a.NotError(c.Set("k1", 123, cache.Forever))
 	v, err = c.Get("k1")
 	a.NotError(err, "Forever 返回未知错误 %s", err).
-		Equal(v, 123, "无法正常获取 k1 的值")
+		Equal(v, 123, "无法正常获取 k1 的值 v1=%d,v2=%d", v, 123)
 
-	// 重设置 k1
+	// 重新设置 k1
 	a.NotError(c.Set("k1", uint(789), 60))
 	v, err = c.Get("k1")
-	a.NotError(err, "1*time.Hover 的值 k1 返回错误信息 %s", err).
-		Equal(v, 789, "无法正常获取 k1 的值")
+	a.NotError(err, "1*time.Hour 的值 k1 返回错误信息 %s", err).
+		Equal(v, 789, "无法正常获取重新设置之后 k1 的值 v1=%d, v2=%d", v, 789)
 
 	// 被 delete 删除
 	a.NotError(c.Delete("k1"))

@@ -30,3 +30,5 @@ _testmain.go
 *.swp
 .vscode/
 .idea/
+file/testdir/*
+!file/testdir/.gitkeep
