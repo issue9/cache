@@ -24,8 +24,25 @@ const (
 // ErrCacheMiss 当不存在缓存项时返回的错误
 var ErrCacheMiss = errors.New("cache: 未找到缓存项")
 
-// Cache 一个统一的缓存接口
+// ErrInvalidKey key 的格式无效
+//
+// 部分适配器对 key 可能是有特殊要求的，
+// 比如在文件系统中，可能会不允许在 key 中包含 .. 或是 / 等，碰到此类情况，可返回此错误信息。
+var ErrInvalidKey = errors.New("cache: key 的格式不符合要求")
+
+// Cache 缓存的访问和控制接口
 type Cache interface {
+	Access
+
+	// 清除所有的缓存内容
+	Clear() error
+
+	// 关闭整个缓存系统
+	Close() error
+}
+
+// Access 缓存内容的访问接口
+type Access interface {
 	// 获取缓存项
 	//
 	// 当前不存在时，返回 ErrCacheMiss 错误。
@@ -41,10 +58,4 @@ type Cache interface {
 
 	// 判断一个缓存项是否存在
 	Exists(key string) bool
-
-	// 清除所有的缓存内容
-	Clear() error
-
-	// 关闭整个缓存系统
-	Close() error
 }
