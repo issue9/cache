@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -71,7 +72,7 @@ func New(root string, gc time.Duration, errlog *log.Logger) cache.Cache {
 }
 
 func (f *file) Get(key string) (val interface{}, err error) {
-	bs, err := os.ReadFile(f.getPath(key))
+	bs, err := ioutil.ReadFile(f.getPath(key))
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, cache.ErrCacheMiss
@@ -108,7 +109,7 @@ func (f *file) Set(key string, val interface{}, seconds int) error {
 		}
 	}
 
-	return os.WriteFile(key, bs, modePerm)
+	return ioutil.WriteFile(key, bs, modePerm)
 }
 
 func (f *file) Delete(key string) error {
