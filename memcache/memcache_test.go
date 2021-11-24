@@ -5,7 +5,7 @@ package memcache
 import (
 	"testing"
 
-	"github.com/issue9/assert"
+	"github.com/issue9/assert/v2"
 
 	"github.com/issue9/cache"
 	"github.com/issue9/cache/internal/testcase"
@@ -14,7 +14,7 @@ import (
 var _ cache.Cache = &memcache{}
 
 func TestMemcache(t *testing.T) {
-	a := assert.New(t)
+	a := assert.New(t, false)
 
 	c := NewFromServers("localhost:11211")
 	a.NotNil(c)
@@ -23,7 +23,7 @@ func TestMemcache(t *testing.T) {
 }
 
 func TestMemcache_Close(t *testing.T) {
-	a := assert.New(t)
+	a := assert.New(t, false)
 
 	c := NewFromServers("localhost:11211")
 	a.NotNil(c)

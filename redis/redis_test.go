@@ -7,7 +7,7 @@ import (
 	"time"
 
 	redigo "github.com/gomodule/redigo/redis"
-	"github.com/issue9/assert"
+	"github.com/issue9/assert/v2"
 
 	"github.com/issue9/cache"
 	"github.com/issue9/cache/internal/testcase"
@@ -16,7 +16,7 @@ import (
 var _ cache.Cache = &redis{}
 
 func TestRedis(t *testing.T) {
-	a := assert.New(t)
+	a := assert.New(t, false)
 
 	c := New(dial(a))
 	a.NotNil(c)
@@ -25,7 +25,7 @@ func TestRedis(t *testing.T) {
 }
 
 func TestRedis_Close(t *testing.T) {
-	a := assert.New(t)
+	a := assert.New(t, false)
 
 	c := New(dial(a))
 	a.NotNil(c)

@@ -6,7 +6,7 @@ package testcase
 import (
 	"time"
 
-	"github.com/issue9/assert"
+	"github.com/issue9/assert/v2"
 
 	"github.com/issue9/cache"
 )

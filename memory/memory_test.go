@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/issue9/assert"
+	"github.com/issue9/assert/v2"
 
 	"github.com/issue9/cache"
 	"github.com/issue9/cache/internal/testcase"
@@ -15,7 +15,7 @@ import (
 var _ cache.Cache = &memory{}
 
 func TestMemory(t *testing.T) {
-	a := assert.New(t)
+	a := assert.New(t, false)
 	c := New(500 * time.Millisecond)
 	a.NotNil(c)
 
