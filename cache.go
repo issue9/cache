@@ -34,28 +34,28 @@ var ErrInvalidKey = errors.New("cache: key 的格式不符合要求")
 type Cache interface {
 	Access
 
-	// 清除所有的缓存内容
+	// Clear 清除所有的缓存内容
 	Clear() error
 
-	// 关闭整个缓存系统
+	// Close 关闭整个缓存系统
 	Close() error
 }
 
 // Access 缓存内容的访问接口
 type Access interface {
-	// 获取缓存项
+	// Get 获取缓存项
 	//
 	// 当前不存在时，返回 ErrCacheMiss 错误。
 	Get(key string) (interface{}, error)
 
-	// 设置或是添加缓存项
+	// Set 设置或是添加缓存项
 	//
 	// seconds 表示过了该时间，缓存项将被回收。如果该值为 0，该值永远不会回收。
 	Set(key string, val interface{}, seconds int) error
 
-	// 删除一个缓存项
+	// Delete 删除一个缓存项
 	Delete(key string) error
 
-	// 判断一个缓存项是否存在
+	// Exists 判断一个缓存项是否存在
 	Exists(key string) bool
 }
