@@ -45,7 +45,7 @@ type Cache interface {
 type Access interface {
 	// Get 获取缓存项
 	//
-	// 当前不存在时，返回 ErrCacheMiss 错误。
+	// 当前不存在时，返回 [ErrCacheMiss] 错误。
 	Get(key string) (interface{}, error)
 
 	// Set 设置或是添加缓存项
