@@ -7,7 +7,7 @@ import (
 	"time"
 
 	redigo "github.com/gomodule/redigo/redis"
-	"github.com/issue9/assert/v2"
+	"github.com/issue9/assert/v3"
 
 	"github.com/issue9/cache"
 	"github.com/issue9/cache/internal/testcase"
