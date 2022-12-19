@@ -7,7 +7,7 @@ import (
 	"encoding/gob"
 )
 
-// GoEncode 将 v 转换成 gob 编码
+// GoEncode 将 v 转换成 []byte
 func GoEncode(v interface{}) ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
@@ -18,7 +18,7 @@ func GoEncode(v interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// GoDecode 将 bs 内容以 gob 规则解码到 v
+// GoDecode 将由 GoEncode 编码的内容解码至 v
 func GoDecode(bs []byte, v interface{}) error {
 	return gob.NewDecoder(bytes.NewBuffer(bs)).Decode(v)
 }
