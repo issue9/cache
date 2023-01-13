@@ -57,7 +57,7 @@ func (mem *memcache) Delete(key string) error {
 
 func (mem *memcache) Exists(key string) bool {
 	_, err := mem.client.Get(key)
-	return errors.Is(err, gm.ErrCacheMiss)
+	return err == nil || !errors.Is(err, gm.ErrCacheMiss)
 }
 
 func (mem *memcache) Clear() error {
