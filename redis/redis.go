@@ -54,8 +54,8 @@ func (redis *redis) Delete(key string) error {
 }
 
 func (redis *redis) Exists(key string) bool {
-	v, err := redis.conn.Do("GET", key)
-	return v != nil || err == nil || !errors.Is(err, redigo.ErrNil)
+	v, _ := redis.conn.Do("GET", key)
+	return v != nil
 }
 
 func (redis *redis) Clear() error {
