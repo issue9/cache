@@ -3,6 +3,8 @@ cache
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/issue9/cache)](https://pkg.go.dev/github.com/issue9/cache)
 ======
 
+**并入 <https://github.com/issue9/web> 不再独立为包**
+
 通用的缓存接口
 
 目前支持以下组件：
