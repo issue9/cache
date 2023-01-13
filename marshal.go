@@ -9,12 +9,12 @@ import (
 
 // Marshaler 缓存系统保存数据时采用的序列化方法
 type Marshaler interface {
-	MarshalCache(interface{}) ([]byte, error)
+	MarshalCache() ([]byte, error)
 }
 
 // Marshaler 缓存系统读取数据时采用的序列化方法
 type Unmarshaler interface {
-	UnmarshalCache([]byte, interface{}) error
+	UnmarshalCache([]byte) error
 }
 
 // Marshal 序列化对象
@@ -25,7 +25,7 @@ type Unmarshaler interface {
 // NOTE: gob 并不能序列化私有字段。
 func Marshal(v interface{}) ([]byte, error) {
 	if m, ok := v.(Marshaler); ok {
-		return m.MarshalCache(v)
+		return m.MarshalCache()
 	}
 
 	var buf bytes.Buffer
@@ -39,7 +39,7 @@ func Marshal(v interface{}) ([]byte, error) {
 
 func Unmarshal(bs []byte, v interface{}) error {
 	if u, ok := v.(Unmarshaler); ok {
-		return u.UnmarshalCache(bs, v)
+		return u.UnmarshalCache(bs)
 	}
 	return gob.NewDecoder(bytes.NewBuffer(bs)).Decode(v)
 }
