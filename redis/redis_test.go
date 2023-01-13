@@ -34,8 +34,8 @@ func TestRedis_Close(t *testing.T) {
 
 	c = New(dial(a))
 	a.NotNil(c)
-	val, err := c.Get("key")
-	a.NotError(err).Equal(val, "val")
+	var val string
+	a.NotError(c.Get("key", &val)).Equal(val, "val")
 }
 
 func dial(a *assert.Assertion) redigo.Conn {

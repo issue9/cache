@@ -4,6 +4,8 @@
 package redis
 
 import (
+	"errors"
+
 	redigo "github.com/gomodule/redigo/redis"
 
 	"github.com/issue9/cache"
@@ -20,23 +22,19 @@ func New(conn redigo.Conn) cache.Cache {
 	}
 }
 
-func (redis *redis) Get(key string) (val interface{}, err error) {
+func (redis *redis) Get(key string, val interface{}) error {
 	bs, err := redigo.Bytes(redis.conn.Do("GET", key))
-	if err == redigo.ErrNil {
-		return nil, cache.ErrCacheMiss
+	if errors.Is(err, redigo.ErrNil) {
+		return cache.ErrCacheMiss
 	} else if err != nil {
-		return nil, err
+		return err
 	}
 
-	if err := cache.GoDecode(bs, &val); err != nil {
-		return nil, err
-	}
-
-	return val, nil
+	return cache.Unmarshal(bs, val)
 }
 
 func (redis *redis) Set(key string, val interface{}, seconds int) error {
-	bs, err := cache.GoEncode(&val)
+	bs, err := cache.Marshal(val)
 	if err != nil {
 		return err
 	}
@@ -56,8 +54,8 @@ func (redis *redis) Delete(key string) error {
 }
 
 func (redis *redis) Exists(key string) bool {
-	_, found := redis.Get(key)
-	return found != cache.ErrCacheMiss
+	_, err := redis.conn.Do("GET", key)
+	return !errors.Is(err, redigo.ErrNil)
 }
 
 func (redis *redis) Clear() error {

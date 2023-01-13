@@ -46,10 +46,13 @@ type Access interface {
 	// Get 获取缓存项
 	//
 	// 当前不存在时，返回 [ErrCacheMiss] 错误。
-	Get(key string) (interface{}, error)
+	Get(key string, v interface{}) error
 
 	// Set 设置或是添加缓存项
 	//
+	// key 表示保存该数据的唯一 ID；
+	// val 表示保存的数据对象，如果是结构体，需要所有的字段都是公开的，
+	// 否则在 [Get] 中将失去这些非公开的字段。
 	// seconds 表示过了该时间，缓存项将被回收。如果该值为 0，该值永远不会回收。
 	Set(key string, val interface{}, seconds int) error
 

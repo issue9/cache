@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -71,27 +70,20 @@ func New(root string, gc time.Duration, errlog *log.Logger) cache.Cache {
 	return f
 }
 
-func (f *file) Get(key string) (val interface{}, err error) {
-	bs, err := ioutil.ReadFile(f.getPath(key))
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, cache.ErrCacheMiss
-		}
-
-		return nil, err
+func (f *file) Get(key string, val interface{}) error {
+	bs, err := os.ReadFile(f.getPath(key))
+	if errors.Is(err, os.ErrNotExist) {
+		return cache.ErrCacheMiss
+	} else if err != nil {
+		return err
 	}
-
-	if err := cache.GoDecode(bs, &val); err != nil {
-		return nil, err
-	}
-
-	return val, nil
+	return cache.Unmarshal(bs, val)
 }
 
 func (f *file) Set(key string, val interface{}, seconds int) error {
 	key = f.getPath(key)
 
-	bs, err := cache.GoEncode(&val)
+	bs, err := cache.Marshal(val)
 	if err != nil {
 		return err
 	}
@@ -109,7 +101,7 @@ func (f *file) Set(key string, val interface{}, seconds int) error {
 		}
 	}
 
-	return ioutil.WriteFile(key, bs, modePerm)
+	return os.WriteFile(key, bs, modePerm)
 }
 
 func (f *file) Delete(key string) error {

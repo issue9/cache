@@ -19,8 +19,8 @@ func Prefix(p string, a Access) Access {
 	}
 }
 
-func (p *prefix) Get(key string) (interface{}, error) {
-	return p.access.Get(p.prefix + key)
+func (p *prefix) Get(key string, v interface{}) error {
+	return p.access.Get(p.prefix+key, v)
 }
 
 func (p *prefix) Set(key string, val interface{}, seconds int) error {

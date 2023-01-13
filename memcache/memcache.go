@@ -4,6 +4,8 @@
 package memcache
 
 import (
+	"errors"
+
 	gm "github.com/bradfitz/gomemcache/memcache"
 
 	"github.com/issue9/cache"
@@ -26,23 +28,18 @@ func New(client *gm.Client) cache.Cache {
 	}
 }
 
-func (mem *memcache) Get(key string) (val interface{}, err error) {
+func (mem *memcache) Get(key string, val interface{}) error {
 	item, err := mem.client.Get(key)
-	if err == gm.ErrCacheMiss {
-		return nil, cache.ErrCacheMiss
+	if errors.Is(err, gm.ErrCacheMiss) {
+		return cache.ErrCacheMiss
 	} else if err != nil {
-		return nil, err
+		return err
 	}
-
-	if err := cache.GoDecode(item.Value, &val); err != nil {
-		return nil, err
-	}
-
-	return val, nil
+	return cache.Unmarshal(item.Value, val)
 }
 
 func (mem *memcache) Set(key string, val interface{}, seconds int) error {
-	bs, err := cache.GoEncode(&val)
+	bs, err := cache.Marshal(val)
 	if err != nil {
 		return err
 	}
@@ -59,8 +56,8 @@ func (mem *memcache) Delete(key string) error {
 }
 
 func (mem *memcache) Exists(key string) bool {
-	_, found := mem.Get(key)
-	return found != cache.ErrCacheMiss
+	_, err := mem.client.Get(key)
+	return errors.Is(err, gm.ErrCacheMiss)
 }
 
 func (mem *memcache) Clear() error {

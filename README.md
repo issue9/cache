@@ -18,12 +18,15 @@ redis      | github.com/gomodule/redigo           | [![memcache](https://github.
 // memory
 c := memory.New()
 c.Set("number", 1)
-print(c.Get("number"))
+var v int
+c.Get("number",&v)
+print(v)
 
 // memcached
 c = memcache.New(log.New(os.Stderr, "", 0), "localhost:11211")
 c.Set("number", 1)
-print(c.Get("number"))
+c.Get("number", &v)
+print(v)
 ```
 
 安装

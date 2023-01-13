@@ -17,14 +17,19 @@ type memory struct {
 }
 
 type item struct {
-	val    interface{}
+	val    []byte
 	dur    time.Duration
 	expire time.Time // 过期的时间
 }
 
-func (i *item) update(val interface{}) {
-	i.val = val
+func (i *item) update(val interface{}) error {
+	bs, err := cache.Marshal(val)
+	if err != nil {
+		return err
+	}
+	i.val = bs
 	i.expire = time.Now().Add(i.dur)
+	return nil
 }
 
 func (i *item) isExpired(now time.Time) bool {
@@ -56,13 +61,11 @@ func New(gc time.Duration) cache.Cache {
 	return mem
 }
 
-func (mem *memory) Get(key string) (interface{}, error) {
-	i, found := mem.findItem(key)
-	if !found {
-		return nil, cache.ErrCacheMiss
+func (mem *memory) Get(key string, v interface{}) error {
+	if item, found := mem.findItem(key); found {
+		return cache.Unmarshal(item.val, v)
 	}
-
-	return i.val, nil
+	return cache.ErrCacheMiss
 }
 
 func (mem *memory) findItem(key string) (*item, bool) {
@@ -76,9 +79,14 @@ func (mem *memory) findItem(key string) (*item, bool) {
 func (mem *memory) Set(key string, val interface{}, seconds int) error {
 	i, found := mem.findItem(key)
 	if !found {
+		bs, err := cache.Marshal(val)
+		if err != nil {
+			return err
+		}
+
 		dur := time.Second * time.Duration(seconds)
 		mem.items.Store(key, &item{
-			val:    val,
+			val:    bs,
 			dur:    dur,
 			expire: time.Now().Add(dur),
 		})

@@ -35,6 +35,6 @@ func TestFile_Close(t *testing.T) {
 
 	c = New("./testdir", 500*time.Millisecond, log.New(os.Stderr, "", 0))
 	a.NotNil(c)
-	val, err := c.Get("key")
-	a.NotError(err).Equal(val, "val")
+	var val string
+	a.NotError(c.Get("key", &val)).Equal(val, "val")
 }

@@ -32,6 +32,6 @@ func TestMemcache_Close(t *testing.T) {
 
 	c = NewFromServers("localhost:11211")
 	a.NotNil(c)
-	val, err := c.Get("key")
-	a.NotError(err).Equal(val, "val")
+	var val string
+	a.NotError(c.Get("key", &val)).Equal(val, "val")
 }
