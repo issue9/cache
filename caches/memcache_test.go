@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-package memcache
+package caches
 
 import (
 	"testing"
@@ -8,29 +8,33 @@ import (
 	"github.com/issue9/assert/v3"
 
 	"github.com/issue9/cache"
-	"github.com/issue9/cache/internal/testcase"
+	"github.com/issue9/cache/cachetest"
 )
 
-var _ cache.Cache = &memcache{}
+var _ cache.Cache = &memcacheDriver{}
 
 func TestMemcache(t *testing.T) {
 	a := assert.New(t, false)
 
-	c := NewFromServers("localhost:11211")
+	c := NewMemcache("localhost:11211")
 	a.NotNil(c)
 
-	testcase.Test(a, c)
+	cachetest.Basic(a, c)
+	cachetest.Object(a, c)
+	cachetest.Counter(a, c)
+
+	a.NotError(c.Close())
 }
 
 func TestMemcache_Close(t *testing.T) {
 	a := assert.New(t, false)
 
-	c := NewFromServers("localhost:11211")
+	c := NewMemcache("localhost:11211")
 	a.NotNil(c)
 	a.NotError(c.Set("key", "val", cache.Forever))
 	a.NotError(c.Close())
 
-	c = NewFromServers("localhost:11211")
+	c = NewMemcache("localhost:11211")
 	a.NotNil(c)
 	var val string
 	a.NotError(c.Get("key", &val)).Equal(val, "val")
