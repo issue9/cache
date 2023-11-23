@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-package caches
+package memory
 
 import (
 	"testing"
