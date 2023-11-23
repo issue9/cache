@@ -11,6 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/issue9/cache"
+	"github.com/issue9/cache/caches"
 )
 
 type redisDriver struct {
@@ -33,23 +34,23 @@ if cnt < 0 then
 end
 return (cnt < 0 and 0 or cnt)`
 
-// NewRedisFromURL 声明基于 [redis] 的缓存系统
+// NewFromURL 声明基于 [redis] 的缓存系统
 //
 // url 为符合 [Redis URI scheme] 的字符串。
 // [cache.Driver.Driver] 的返回类型为 [redis.Client]。
 //
 // [Redis URI scheme]: https://www.iana.org/assignments/uri-schemes/prov/redis
 // [redis]: https://redis.io/
-func NewRedisFromURL(url string) (cache.Driver, error) {
+func NewFromURL(url string) (cache.Driver, error) {
 	opt, err := redis.ParseURL(url)
 	if err != nil {
 		return nil, err
 	}
-	return NewRedis(redis.NewClient(opt)), nil
+	return New(redis.NewClient(opt)), nil
 }
 
-// NewRedis 声明基于 redis 的缓存系统
-func NewRedis(c *redis.Client) cache.Driver {
+// New 声明基于 redis 的缓存系统
+func New(c *redis.Client) cache.Driver {
 	return &redisDriver{
 		conn:         c,
 		decrByScript: redis.NewScript(redisDecrByScript),
@@ -64,11 +65,11 @@ func (d *redisDriver) Get(key string, val any) error {
 		return err
 	}
 
-	return Unmarshal(bs, val)
+	return caches.Unmarshal(bs, val)
 }
 
 func (d *redisDriver) Set(key string, val any, ttl time.Duration) error {
-	bs, err := Marshal(val)
+	bs, err := caches.Marshal(val)
 	if err != nil {
 		return err
 	}

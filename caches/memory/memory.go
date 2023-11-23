@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/issue9/cache"
+	"github.com/issue9/cache/caches"
 )
 
 type memoryDriver struct {
@@ -30,7 +31,7 @@ type item struct {
 }
 
 func (i *item) update(val any) error {
-	bs, err := Marshal(val)
+	bs, err := caches.Marshal(val)
 	if err != nil {
 		return err
 	}
@@ -43,11 +44,11 @@ func (i *item) isExpired(now time.Time) bool {
 	return i.dur != 0 && i.expire.Before(now)
 }
 
-// NewMemory 声明一个内存缓存
+// New 声明一个内存缓存
 //
 // gc 表示执行内存回收的操作。
 // [cache.Driver.Driver] 的返回类型为 [sync.Map]。
-func NewMemory() (driver cache.Driver, gc func(time.Time)) {
+func New() (driver cache.Driver, gc func(time.Time)) {
 	mem := &memoryDriver{
 		items: &sync.Map{},
 	}
@@ -56,7 +57,7 @@ func NewMemory() (driver cache.Driver, gc func(time.Time)) {
 
 func (d *memoryDriver) Get(key string, v any) error {
 	if item, found := d.findItem(key); found {
-		return Unmarshal(item.val, v)
+		return caches.Unmarshal(item.val, v)
 	}
 	return cache.ErrCacheMiss()
 }
@@ -72,7 +73,7 @@ func (d *memoryDriver) findItem(key string) (*item, bool) {
 func (d *memoryDriver) Set(key string, val any, ttl time.Duration) error {
 	i, found := d.findItem(key)
 	if !found {
-		bs, err := Marshal(val)
+		bs, err := caches.Marshal(val)
 		if err != nil {
 			return err
 		}

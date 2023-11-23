@@ -10,6 +10,7 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 
 	"github.com/issue9/cache"
+	"github.com/issue9/cache/caches"
 )
 
 type memcacheDriver struct {
@@ -24,12 +25,12 @@ type memcacheCounter struct {
 	ttl       int32
 }
 
-// NewMemcache 声明基于 [memcached] 的缓存系统
+// New 声明基于 [memcached] 的缓存系统
 //
 // [cache.Driver.Driver] 的返回类型为 [memcache.Client]。
 //
 // [memcached]: https://memcached.org/
-func NewMemcache(addr ...string) cache.Driver {
+func New(addr ...string) cache.Driver {
 	return &memcacheDriver{
 		client: memcache.New(addr...),
 	}
@@ -42,11 +43,11 @@ func (d *memcacheDriver) Get(key string, val any) error {
 	} else if err != nil {
 		return err
 	}
-	return Unmarshal(item.Value, val)
+	return caches.Unmarshal(item.Value, val)
 }
 
 func (d *memcacheDriver) Set(key string, val any, ttl time.Duration) error {
-	bs, err := Marshal(val)
+	bs, err := caches.Marshal(val)
 	if err != nil {
 		return err
 	}

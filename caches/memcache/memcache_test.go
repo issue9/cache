@@ -16,7 +16,7 @@ var _ cache.Cache = &memcacheDriver{}
 func TestMemcache(t *testing.T) {
 	a := assert.New(t, false)
 
-	c := NewMemcache("localhost:11211")
+	c := New("localhost:11211")
 	a.NotNil(c)
 
 	cachetest.Basic(a, c)
@@ -29,12 +29,12 @@ func TestMemcache(t *testing.T) {
 func TestMemcache_Close(t *testing.T) {
 	a := assert.New(t, false)
 
-	c := NewMemcache("localhost:11211")
+	c := New("localhost:11211")
 	a.NotNil(c)
 	a.NotError(c.Set("key", "val", cache.Forever))
 	a.NotError(c.Close())
 
-	c = NewMemcache("localhost:11211")
+	c = New("localhost:11211")
 	a.NotNil(c)
 	var val string
 	a.NotError(c.Get("key", &val)).Equal(val, "val")

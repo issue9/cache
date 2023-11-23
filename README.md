@@ -17,27 +17,25 @@ redis      | github.com/redis/go-redis            | [![memcache](https://github.
 
 ```go
 // memory
-c, _ := caches.NewMemory(...)
+c, _ := memory.New(...)
 c.Set("number", 1)
 var v int
 c.Get("number",&v)
 print(v)
 
 // memcached
-c = caches.NewMemcache("localhost:11211")
+c = memcache.New("localhost:11211")
 c.Set("number", 1)
 c.Get("number", &v)
 print(v)
 ```
 
-安装
----
+## 安装
 
 ```shell
 go get github.com/issue9/cache
 ```
 
-版权
----
+## 版权
 
 本项目采用 [MIT](https://opensource.org/licenses/MIT) 开源授权许可证，完整的授权说明可在 [LICENSE](LICENSE) 文件中找到。

@@ -17,7 +17,7 @@ var _ cache.Cache = &memoryDriver{}
 func TestMemory(t *testing.T) {
 	a := assert.New(t, false)
 
-	c, gc := NewMemory()
+	c, gc := New()
 	a.NotNil(c)
 
 	ticker := time.NewTicker(500 * time.Millisecond)
