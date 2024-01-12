@@ -19,7 +19,7 @@ import (
 // 如果需要自己实现，需要注意 [cache.Serializer] 接口的判断。
 func Marshal(v any) ([]byte, error) {
 	if m, ok := v.(cache.Serializer); ok {
-		return m.MarshalCache()
+		return m.MarshalText()
 	}
 
 	var buf bytes.Buffer
@@ -33,7 +33,7 @@ func Marshal(v any) ([]byte, error) {
 
 func Unmarshal(bs []byte, v any) error {
 	if u, ok := v.(cache.Serializer); ok {
-		return u.UnmarshalCache(bs)
+		return u.UnmarshalText(bs)
 	}
 	return gob.NewDecoder(bytes.NewBuffer(bs)).Decode(v)
 }

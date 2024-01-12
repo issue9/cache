@@ -119,11 +119,11 @@ type object struct {
 	age  int
 }
 
-func (o *object) MarshalCache() ([]byte, error) {
+func (o *object) MarshalText() ([]byte, error) {
 	return []byte(o.Name + "," + strconv.Itoa(o.age)), nil
 }
 
-func (o *object) UnmarshalCache(bs []byte) error {
+func (o *object) UnmarshalText(bs []byte) error {
 	fields := strings.Split(string(bs), ",")
 	if len(fields) != 2 {
 		return errors.New("error")
