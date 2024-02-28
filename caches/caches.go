@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2017-2024 caixw
+//
 // SPDX-License-Identifier: MIT
 
 // Package caches 内置的缓存接口实现

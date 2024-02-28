@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2017-2024 caixw
+//
 // SPDX-License-Identifier: MIT
 
 package redis
@@ -5,7 +7,7 @@ package redis
 import (
 	"testing"
 
-	"github.com/issue9/assert/v3"
+	"github.com/issue9/assert/v4"
 
 	"github.com/issue9/cache"
 	"github.com/issue9/cache/cachetest"
