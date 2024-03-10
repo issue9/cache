@@ -33,9 +33,7 @@ type memcacheCounter struct {
 //
 // [memcached]: https://memcached.org/
 func New(addr ...string) cache.Driver {
-	return &memcacheDriver{
-		client: memcache.New(addr...),
-	}
+	return &memcacheDriver{client: memcache.New(addr...)}
 }
 
 func (d *memcacheDriver) Get(key string, val any) error {

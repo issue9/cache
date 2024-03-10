@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
 	github.com/issue9/assert/v4 v4.1.1
-	github.com/issue9/localeutil v0.26.4
+	github.com/issue9/localeutil v0.26.5
 	github.com/redis/go-redis/v9 v9.5.1
 )
 

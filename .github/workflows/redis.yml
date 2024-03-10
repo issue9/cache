@@ -26,7 +26,7 @@ jobs:
     steps:
 
     - name: 安装 Go ${{ matrix.go }}
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go }}
       id: go
@@ -36,12 +36,12 @@ jobs:
 
     - name: Vet
       run: go vet -v ./...
-        
+
     - name: Test
       run: go test -v -race -coverprofile=coverage.txt ./caches/redis/. -covermode=atomic
-      
-    - name: Upload coverage to Codecov  
-      uses: codecov/codecov-action@v3
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
       with:
         token: ${{secrets.CODECOV_TOKEN}}
         file: ./coverage.txt

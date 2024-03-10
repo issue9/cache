@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package cache
+package caches
 
 import "encoding"
 
@@ -13,7 +13,15 @@ import "encoding"
 //
 // 实现 Serializer 可以拥有更高效的转换效率，以及一些默认行为不可实现的功能，
 // 比如需要对拥有不可导出的字段进行编解码。
+//
+// NOTE: 必须要有自定义的序列化接口，而不是直接采用 [encoding.TextMarshaler]
+// 防止无意中改变了 JSON 的编码方式。
 type Serializer interface {
+	MarshalCache() ([]byte, error)
+	UnmarshalCache([]byte) error
+}
+
+type textSerializer interface {
 	encoding.TextMarshaler
 	encoding.TextUnmarshaler
 }

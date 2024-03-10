@@ -8,34 +8,43 @@ package caches
 import (
 	"bytes"
 	"encoding/gob"
-
-	"github.com/issue9/cache"
 )
 
 // Marshal 序列化对象
 //
-// 这是 [cache.Cache] 存储对象时的转换方法，
-// 除了判断 [cache.Serializer] 之外，还提供了默认的编码方式。
+// 这是 [cache.Cache] 存储对象时的转换方法，按以下顺序进行：
+//   - 是否实现 [Serializer]；
+//   - 是否同时实现了 [encoding.TextMarshaler] 和 [encoding.TextUnmarshaler]；
+//   - 采用 gob 编码；
+//
+// [Unmarshal] 按同样的顺序执行。
 //
 // 大部分时候 [cache.Driver] 的实现者直接调用此方法即可，
-// 如果需要自己实现，需要注意 [cache.Serializer] 接口的判断。
+// 如果需要自己实现，需要注意 [Serializer] 接口的判断。
 func Marshal(v any) ([]byte, error) {
-	if m, ok := v.(cache.Serializer); ok {
+	switch m := v.(type) {
+	case Serializer:
+		return m.MarshalCache()
+	case textSerializer:
 		return m.MarshalText()
-	}
+	default:
+		var buf bytes.Buffer
+		enc := gob.NewEncoder(&buf)
 
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-
-	if err := enc.Encode(v); err != nil {
-		return nil, err
+		if err := enc.Encode(v); err != nil {
+			return nil, err
+		}
+		return buf.Bytes(), nil
 	}
-	return buf.Bytes(), nil
 }
 
 func Unmarshal(bs []byte, v any) error {
-	if u, ok := v.(cache.Serializer); ok {
+	switch u := v.(type) {
+	case Serializer:
+		return u.UnmarshalCache(bs)
+	case textSerializer:
 		return u.UnmarshalText(bs)
+	default:
+		return gob.NewDecoder(bytes.NewBuffer(bs)).Decode(v)
 	}
-	return gob.NewDecoder(bytes.NewBuffer(bs)).Decode(v)
 }
