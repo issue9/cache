@@ -191,7 +191,7 @@ func (c *memoryCounter) Value() (uint64, error) {
 	if item, found := c.driver.findItem(c.key); found {
 		return strconv.ParseUint(string(item.val), 10, 64)
 	}
-	return c.originVal, cache.ErrCacheMiss()
+	return 0, cache.ErrCacheMiss()
 }
 
 func (c *memoryCounter) Delete() error { return c.driver.Delete(c.key) }

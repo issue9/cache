@@ -22,7 +22,7 @@ func Counter(a *assert.Assertion, d cache.Driver) {
 	a.NotNil(c)
 
 	v1, err := c.Value()
-	a.ErrorIs(err, cache.ErrCacheMiss()).Equal(v1, 50)
+	a.ErrorIs(err, cache.ErrCacheMiss()).Zero(v1)
 
 	v1, err = c.Incr(5)
 	a.NotError(err).Equal(v1, 55)

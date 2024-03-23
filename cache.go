@@ -9,6 +9,7 @@
 package cache
 
 import (
+	"errors"
 	"time"
 
 	"github.com/issue9/localeutil"
@@ -59,7 +60,7 @@ type Cache interface {
 // 但是可以由 [Cache.Exists]、[Cache.Delete] 和 [Cache.Set] 进行相应的操作。
 //
 // 各个驱动对自增值的类型定义是不同的，
-// 只有在 [0, math.MaxInt32] 范围内的数值是安全的。
+// 只有在 [0, math.MaxInt32) 范围内的数值是安全的。
 type Counter interface {
 	// Incr 增加计数并返回增加后的值
 	Incr(uint64) (uint64, error)
@@ -68,8 +69,6 @@ type Counter interface {
 	Decr(uint64) (uint64, error)
 
 	// Value 返回该计数器的当前值
-	//
-	// 如果出错将返回默认值。
 	Value() (uint64, error)
 
 	// Delete 删除当前的计数器
@@ -89,7 +88,7 @@ type Cleanable interface {
 // Driver 所有缓存驱动需要实现的接口
 //
 // 对于数据的序列化相关操作可直接调用 [caches.Marshal] 和 [caches.Unmarshal]
-// 进行处理，如果需要自行处理，需要对实现 [Serializer] 接口的数据进行处理。
+// 进行处理，如果需要自行处理，需要对实现 [caches.Serializer] 接口的数据进行处理。
 //
 // 新的驱动可以采用 [github.com/issue9/cache/cachetest] 对接口进行测试，看是否符合要求。
 type Driver interface {
@@ -104,3 +103,25 @@ type Driver interface {
 
 // ErrCacheMiss 当不存在缓存项时返回的错误
 func ErrCacheMiss() error { return errCacheMiss }
+
+// GetOrInit 获取缓存项
+//
+// 在缓存不存在时，会尝试调用 init 初始化数据，并调用 [Cache.Set] 存入缓存。
+func GetOrInit(cache Cache, key string, v any, ttl time.Duration, init func() (any, error)) error {
+	err := cache.Get(key, key)
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, ErrCacheMiss()):
+		val, err := init()
+		if err != nil {
+			return err
+		}
+		if err := cache.Set(key, val, ttl); err != nil {
+			return err
+		}
+		return cache.Get(key, v)
+	default:
+		return err
+	}
+}

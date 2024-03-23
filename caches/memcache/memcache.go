@@ -73,6 +73,7 @@ func (d *memcacheDriver) Close() error { return d.client.Close() }
 func (d *memcacheDriver) Driver() any { return d.client }
 
 func (d *memcacheDriver) Counter(key string, val uint64, ttl time.Duration) cache.Counter {
+	// TODO 确保值是存在的
 	return &memcacheCounter{
 		driver:    d,
 		key:       key,
@@ -129,9 +130,9 @@ func (c *memcacheCounter) init() error {
 func (c *memcacheCounter) Value() (uint64, error) {
 	item, err := c.driver.client.Get(c.key)
 	if errors.Is(err, memcache.ErrCacheMiss) {
-		return c.originVal, cache.ErrCacheMiss()
+		return 0, cache.ErrCacheMiss()
 	} else if err != nil {
-		return c.originVal, err
+		return 0, err
 	}
 
 	v := string(item.Value)

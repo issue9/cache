@@ -134,9 +134,9 @@ func (c *redisCounter) init() error {
 func (c *redisCounter) Value() (uint64, error) {
 	s, err := c.driver.conn.Get(context.Background(), c.key).Result()
 	if errors.Is(err, redis.Nil) {
-		return c.originVal, cache.ErrCacheMiss()
+		return 0, cache.ErrCacheMiss()
 	} else if err != nil {
-		return c.originVal, err
+		return 0, err
 	}
 	return strconv.ParseUint(s, 10, 64)
 }
