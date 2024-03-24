@@ -17,7 +17,8 @@ import (
 
 var errCacheMiss = localeutil.Error("cache miss")
 
-const Forever = 0 //  永不过时
+// Forever 永不过时
+const Forever = 0
 
 // Cache 缓存内容的访问接口
 type Cache interface {
@@ -106,10 +107,13 @@ func ErrCacheMiss() error { return errCacheMiss }
 
 // GetOrInit 获取缓存项
 //
-// 在缓存不存在时，会尝试调用 init 初始化数据，并调用 [Cache.Set] 存入缓存。
-func GetOrInit(cache Cache, key string, v any, ttl time.Duration, init func() (any, error)) error {
-	err := cache.Get(key, key)
-	switch {
+// 在缓存不存在时，会尝试调用 init 初始化，并调用 [Cache.Set] 存入缓存。
+//
+// key 和 v 相当于调用 [Cache.Get] 的参数；
+// 如果 [Cache.Get] 返回 [ErrCacheMiss]，那么将调用 init 方法初始化值并写入缓存，
+// 最后再调用 [Cache.Get] 返回值。
+func GetOrInit[T any](cache Cache, key string, v *T, ttl time.Duration, init func() (T, error)) error {
+	switch err := cache.Get(key, v); {
 	case err == nil:
 		return nil
 	case errors.Is(err, ErrCacheMiss()):
@@ -120,7 +124,7 @@ func GetOrInit(cache Cache, key string, v any, ttl time.Duration, init func() (a
 		if err := cache.Set(key, val, ttl); err != nil {
 			return err
 		}
-		return cache.Get(key, v)
+		return cache.Get(key, v) // 依然有可能返回 [ErrCacheMiss]
 	default:
 		return err
 	}

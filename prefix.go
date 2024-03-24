@@ -13,7 +13,7 @@ type prefix struct {
 
 // Prefix 生成一个带有统一前缀名称的缓存访问对象
 //
-//	c := NewMemory(...)
+//	c := memory.New(...)
 //	p := cache.Prefix(c, "prefix_")
 //	p.Get("k1") // 相当于 c.Get("prefix_k1")
 func Prefix(a Cache, p string) Cache { return &prefix{prefix: p, cache: a} }
