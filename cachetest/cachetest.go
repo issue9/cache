@@ -6,9 +6,6 @@
 package cachetest
 
 import (
-	"errors"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/issue9/assert/v4"
@@ -82,7 +79,14 @@ func Basic(a *assert.Assertion, c cache.Driver) {
 	var num int
 	err = c.Get("k1", &num)
 	a.NotError(err, "Forever 返回未知错误 %s", err).
-		Equal(num, 123, "无法正常获取 k1 的值 v1=%s,v2=%d", v, 123)
+		Equal(num, 123)
+
+	now := time.Now()
+	a.NotError(c.Set("t1", now, cache.Forever))
+	var t time.Time
+	err = c.Get("t1", &t)
+	a.NotError(err, "Forever 返回未知错误 %s", err).
+		NotZero(t)
 
 	// 重新设置 k1
 	a.NotError(c.Set("k1", uint(789), time.Minute))
@@ -121,33 +125,12 @@ type object struct {
 	age  int
 }
 
-func (o *object) MarshalText() ([]byte, error) {
-	return []byte(o.Name + "," + strconv.Itoa(o.age)), nil
-}
-
-func (o *object) UnmarshalText(bs []byte) error {
-	fields := strings.Split(string(bs), ",")
-	if len(fields) != 2 {
-		return errors.New("error")
-	}
-
-	o.Name = fields[0]
-	age, err := strconv.Atoi(fields[1])
-	if err != nil {
-		return err
-	}
-	o.age = age
-
-	return nil
-}
-
 // Object 测试对象的缓存
 func Object(a *assert.Assertion, c cache.Driver) {
 	obj := &object{Name: "test", age: 5}
-	obj2 := &object{Name: "test", age: 5}
 
 	a.NotError(c.Set("obj", obj, cache.Forever))
 	var v object
 	err := c.Get("obj", &v)
-	a.NotError(err).Equal(&v, obj2)
+	a.NotError(err).Equal(&v, &object{Name: "test"}) // 私有字段，无法解码
 }
