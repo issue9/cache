@@ -32,3 +32,17 @@ func TestGetOrInit(t *testing.T) {
 	a.NotError(err).
 		Equal(v2, "10")
 }
+
+func TestGet(t *testing.T) {
+	a := assert.New(t, false)
+
+	d, _ := memory.New()
+	a.NotNil(d)
+
+	v1, err := cache.Get[string](d, "v1")
+	a.Equal(err, cache.ErrCacheMiss()).Empty(v1)
+
+	a.NotError(d.Set("v1", "string", cache.Forever))
+	v2, err := cache.Get[string](d, "v1")
+	a.NotError(err).Equal(v2, "string")
+}

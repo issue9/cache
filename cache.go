@@ -129,3 +129,10 @@ func GetOrInit[T any](cache Cache, key string, v *T, ttl time.Duration, init fun
 		return err
 	}
 }
+
+// Get [cache.Get] 的泛型版本
+func Get[T any](cache Cache, key string) (T, error) {
+	var val T
+	err := cache.Get(key, &val)
+	return val, err
+}
