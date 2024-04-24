@@ -88,9 +88,7 @@ type Cleanable interface {
 
 // Driver 所有缓存驱动需要实现的接口
 //
-// 对于数据的序列化相关操作可直接调用 [caches.Marshal] 和 [caches.Unmarshal]
-// 进行处理，如果需要自行处理，需要对实现 [caches.Serializer] 接口的数据进行处理。
-//
+// 对于数据的序列化相关操作可直接调用 [caches.Marshal] 和 [caches.Unmarshal] 进行处理。
 // 新的驱动可以采用 [github.com/issue9/cache/cachetest] 对接口进行测试，看是否符合要求。
 type Driver interface {
 	Cleanable
