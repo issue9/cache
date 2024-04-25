@@ -22,11 +22,9 @@ type redisDriver struct {
 }
 
 type redisCounter struct {
-	driver    *redisDriver
-	key       string
-	val       string
-	originVal uint64
-	ttl       time.Duration
+	driver *redisDriver
+	key    string
+	ttl    time.Duration
 }
 
 // redis 处理 DECRBY 的事务脚本
@@ -78,57 +76,53 @@ func (d *redisDriver) Set(key string, val any, ttl time.Duration) error {
 	return d.conn.Set(context.Background(), key, bs, ttl).Err()
 }
 
-func (d *redisDriver) Delete(key string) error {
-	return d.conn.Del(context.Background(), key).Err()
-}
+func (d *redisDriver) Delete(key string) error { return d.conn.Del(context.Background(), key).Err() }
 
 func (d *redisDriver) Exists(key string) bool {
 	rslt, err := d.conn.Exists(context.Background(), key).Result()
 	return err == nil && rslt > 0
 }
 
-func (d *redisDriver) Clean() error {
-	return d.conn.FlushDB(context.Background()).Err()
-}
+func (d *redisDriver) Clean() error { return d.conn.FlushDB(context.Background()).Err() }
 
 func (d *redisDriver) Close() error { return d.conn.Close() }
 
 func (d *redisDriver) Driver() any { return d.conn }
 
-func (d *redisDriver) Counter(key string, val uint64, ttl time.Duration) cache.Counter {
-	return &redisCounter{
-		driver:    d,
-		key:       key,
-		val:       strconv.FormatUint(val, 10),
-		originVal: val,
-		ttl:       ttl,
+func (d *redisDriver) Counter(key string, val uint64, ttl time.Duration) (cache.Counter, error) {
+	if err := d.conn.Set(context.Background(), key, val, ttl).Err(); err != nil {
+		return nil, err
 	}
+
+	return &redisCounter{
+		driver: d,
+		key:    key,
+		ttl:    ttl,
+	}, nil
 }
 
 func (c *redisCounter) Incr(n uint64) (uint64, error) {
-	if err := c.init(); err != nil {
-		return 0, err
+	if !c.driver.Exists(c.key) {
+		return 0, cache.ErrCacheMiss()
 	}
 
 	rslt, err := c.driver.conn.IncrBy(context.Background(), c.key, int64(n)).Result()
-	if err != nil {
-		return 0, err
+	if err == nil && c.ttl > 0 {
+		_, err = c.driver.conn.Expire(context.Background(), c.key, c.ttl).Result()
 	}
-	return uint64(rslt), nil
+	return uint64(rslt), err
 }
 
 func (c *redisCounter) Decr(n uint64) (uint64, error) {
-	if err := c.init(); err != nil {
-		return 0, err
+	if !c.driver.Exists(c.key) {
+		return 0, cache.ErrCacheMiss()
 	}
 
-	in := int64(n)
-	v, err := c.driver.decrByScript.Run(context.Background(), c.driver.conn, []string{c.key}, in).Int64()
+	v, err := c.driver.decrByScript.Run(context.Background(), c.driver.conn, []string{c.key}, int64(n)).Int64()
+	if err == nil && c.ttl > 0 {
+		_, err = c.driver.conn.Expire(context.Background(), c.key, c.ttl).Result()
+	}
 	return uint64(v), err
-}
-
-func (c *redisCounter) init() error {
-	return c.driver.conn.SetNX(context.Background(), c.key, c.val, c.ttl).Err()
 }
 
 func (c *redisCounter) Value() (uint64, error) {
@@ -141,6 +135,4 @@ func (c *redisCounter) Value() (uint64, error) {
 	return strconv.ParseUint(s, 10, 64)
 }
 
-func (c *redisCounter) Delete() error {
-	return c.driver.conn.Del(context.Background(), c.key).Err()
-}
+func (c *redisCounter) Delete() error { return c.driver.conn.Del(context.Background(), c.key).Err() }

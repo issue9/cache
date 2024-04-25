@@ -18,12 +18,10 @@ type memoryDriver struct {
 }
 
 type memoryCounter struct {
-	driver    *memoryDriver
-	key       string
-	val       []byte
-	originVal uint64
-	expires   time.Duration
-	locker    sync.RWMutex
+	driver  *memoryDriver
+	key     string
+	expires time.Duration
+	locker  sync.RWMutex
 }
 
 type item struct {
@@ -32,14 +30,11 @@ type item struct {
 	expire time.Time // 过期的时间
 }
 
-func (i *item) update(val any) error {
-	bs, err := caches.Marshal(val)
-	if err != nil {
-		return err
+func (i *item) update(val any) (err error) {
+	if i.val, err = caches.Marshal(val); err == nil {
+		i.expire = time.Now().Add(i.dur)
 	}
-	i.val = bs
-	i.expire = time.Now().Add(i.dur)
-	return nil
+	return err
 }
 
 func (i *item) isExpired(now time.Time) bool {
@@ -122,21 +117,25 @@ func (d *memoryDriver) gc(now time.Time) {
 	})
 }
 
-func (d *memoryDriver) Counter(key string, val uint64, ttl time.Duration) cache.Counter {
+func (d *memoryDriver) Counter(key string, val uint64, ttl time.Duration) (cache.Counter, error) {
+	d.items.Store(key, &item{
+		val:    []byte(strconv.FormatUint(val, 10)),
+		dur:    ttl,
+		expire: time.Now().Add(ttl),
+	})
+
 	return &memoryCounter{
-		driver:    d,
-		key:       key,
-		val:       []byte(strconv.FormatUint(val, 10)),
-		originVal: val,
-		expires:   ttl,
-	}
+		driver:  d,
+		key:     key,
+		expires: ttl,
+	}, nil
 }
 
 func (c *memoryCounter) Incr(n uint64) (uint64, error) {
 	c.locker.Lock()
 	defer c.locker.Unlock()
 
-	v, err := c.init()
+	v, err := c.Value()
 	if err != nil {
 		return 0, err
 	}
@@ -154,7 +153,7 @@ func (c *memoryCounter) Decr(n uint64) (uint64, error) {
 	c.locker.Lock()
 	defer c.locker.Unlock()
 
-	v, err := c.init()
+	v, err := c.Value()
 	if err != nil {
 		return 0, err
 	}
@@ -171,25 +170,9 @@ func (c *memoryCounter) Decr(n uint64) (uint64, error) {
 	return v, nil
 }
 
-func (c *memoryCounter) init() (uint64, error) {
-	ret, loaded := c.driver.items.LoadOrStore(c.key, &item{
-		val:    c.val,
-		dur:    c.expires,
-		expire: time.Now().Add(c.expires),
-	})
-
-	if !loaded {
-		return c.originVal, nil
-	}
-	return strconv.ParseUint(string(ret.(*item).val), 10, 64)
-}
-
 func (c *memoryCounter) Value() (uint64, error) {
-	c.locker.RLock()
-	defer c.locker.RUnlock()
-
-	if item, found := c.driver.findItem(c.key); found {
-		return strconv.ParseUint(string(item.val), 10, 64)
+	if i, found := c.driver.items.Load(c.key); found {
+		return strconv.ParseUint(string(i.(*item).val), 10, 64)
 	}
 	return 0, cache.ErrCacheMiss()
 }

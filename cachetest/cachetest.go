@@ -15,11 +15,11 @@ import (
 
 // Counter 测试计数器
 func Counter(a *assert.Assertion, d cache.Driver) {
-	c := d.Counter("v1", 50, time.Second)
-	a.NotNil(c)
+	c, err := d.Counter("v1", 50, time.Second)
+	a.NotError(err).NotNil(c)
 
 	v1, err := c.Value()
-	a.ErrorIs(err, cache.ErrCacheMiss()).Zero(v1)
+	a.NotError(err).Equal(v1, 50)
 
 	v1, err = c.Incr(5)
 	a.NotError(err).Equal(v1, 55)
@@ -36,33 +36,22 @@ func Counter(a *assert.Assertion, d cache.Driver) {
 	a.NotError(c.Delete())
 	a.False(d.Exists("v1"))
 
-	// 没有值的情况 Decr
-	c = d.Counter("v2", 50, time.Second)
-	a.NotNil(c)
-	a.NotError(c.Delete())
-	v2, err := c.Decr(3)
-	a.NotError(err).Equal(v2, 47)
-	v2, err = c.Value()
-	a.Nil(err).Equal(v2, 47)
-
-	v2, err = c.Decr(4888)
-	a.NotError(err).Equal(v2, 0)
-
-	v2, err = c.Value()
-	a.NotError(err).Equal(v2, 0)
-
-	v2, err = c.Decr(47)
-	a.NotError(err).Equal(v2, 0)
+	v2, err := c.Decr(3) // 已经被删除
+	a.ErrorIs(err, cache.ErrCacheMiss()).Zero(v2)
+	v2, err = c.Incr(3) // 已经被删除
+	a.ErrorIs(err, cache.ErrCacheMiss()).Zero(v2)
 
 	// 多个 Counter 指向同一个 key
 
-	c1 := d.Counter("v3", 50, time.Second)
-	c2 := d.Counter("v3", 50, time.Second)
-
+	c1, err := d.Counter("v3", 50, time.Second)
+	a.NotError(err).NotNil(c1)
 	v1, err = c1.Decr(5)
 	a.NotError(err).Equal(v1, 45)
+
+	c2, err := d.Counter("v3", 50, time.Second)
+	a.NotError(err).NotNil(c2)
 	v2, err = c2.Value()
-	a.NotError(err).Equal(v2, 45)
+	a.NotError(err).Equal(v2, 50)
 }
 
 // Basic 测试基本功能

@@ -27,9 +27,6 @@ type Cache interface {
 	// 当前不存在时，返回 [ErrCacheMiss] 错误。
 	// key 为缓存项的唯一 ID；
 	// v 为缓存写入的地址，应该始终为指针类型；
-	//
-	// NOTE: 不能正确获取由 [Cache.Counter] 设置的值，[Cache.Counter]
-	// 的实现是基于缓存系统原生的功能，存储方式与当前的实现可能是不同的。
 	Get(key string, v any) error
 
 	// Set 设置或是添加缓存项
@@ -49,20 +46,12 @@ type Cache interface {
 
 	// Counter 返回计数器操作接口
 	//
+	// key 表示计数器的名称，如果已经存在同名值，那么将被覆盖。
 	// val 和 ttl 表示在该计数器不存在时，初始化的值以及回收时间。
-	Counter(key string, val uint64, ttl time.Duration) Counter
+	Counter(key string, val uint64, ttl time.Duration) (Counter, error)
 }
 
 // Counter 计数器需要实现的接口
-//
-// [Cache] 支持自定义的序列化接口，但是对于自增等纯数值操作，
-// 各个缓存服务都实现自有的快捷操作，无法适用自定义的序列化。
-//
-// 由 Counter 设置的值，可能无法由 [Cache.Get] 读取到正确的值，
-// 但是可以由 [Cache.Exists]、[Cache.Delete] 和 [Cache.Set] 进行相应的操作。
-//
-// 各个驱动对自增值的类型定义是不同的，
-// 只有在 [0, math.MaxInt32) 范围内的数值是安全的。
 type Counter interface {
 	// Incr 增加计数并返回增加后的值
 	Incr(uint64) (uint64, error)

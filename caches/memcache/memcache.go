@@ -20,11 +20,9 @@ type memcacheDriver struct {
 }
 
 type memcacheCounter struct {
-	driver    *memcacheDriver
-	key       string
-	val       []byte
-	originVal uint64
-	ttl       int32
+	driver *memcacheDriver
+	key    string
+	ttl    int32
 }
 
 // New 声明基于 [memcached] 的缓存系统
@@ -78,59 +76,45 @@ func (d *memcacheDriver) Close() error { return d.client.Close() }
 
 func (d *memcacheDriver) Driver() any { return d.client }
 
-func (d *memcacheDriver) Counter(key string, val uint64, ttl time.Duration) cache.Counter {
-	// TODO 确保值是存在的
-	return &memcacheCounter{
-		driver:    d,
-		key:       key,
-		val:       []byte(strconv.FormatUint(val, 10)),
-		originVal: val,
-		ttl:       int32(ttl.Seconds()),
+func (d *memcacheDriver) Counter(key string, val uint64, ttl time.Duration) (cache.Counter, error) {
+	err := d.client.Set(&memcache.Item{
+		Key:        key,
+		Value:      []byte(strconv.FormatUint(val, 10)),
+		Expiration: int32(ttl.Seconds()),
+	})
+	if err != nil {
+		return nil, err
 	}
+
+	return &memcacheCounter{
+		driver: d,
+		key:    key,
+		ttl:    int32(ttl.Seconds()),
+	}, nil
 }
 
 func (c *memcacheCounter) Incr(n uint64) (uint64, error) {
-	if err := c.init(); err != nil {
-		return 0, err
-	}
-
 	v, err := c.driver.client.Increment(c.key, n)
-	if err == nil {
+	if err == nil && c.ttl > 0 {
 		err = c.driver.client.Touch(c.key, c.ttl)
 	}
 
-	if err != nil {
-		return 0, err
+	if errors.Is(err, memcache.ErrCacheMiss) {
+		return 0, cache.ErrCacheMiss()
 	}
-	return v, nil
+	return v, err
 }
 
 func (c *memcacheCounter) Decr(n uint64) (uint64, error) {
-	if err := c.init(); err != nil {
-		return 0, err
-	}
-
 	v, err := c.driver.client.Decrement(c.key, n)
-	if err == nil {
+	if err == nil && c.ttl > 0 {
 		err = c.driver.client.Touch(c.key, c.ttl)
 	}
 
-	if err != nil {
-		return 0, err
+	if errors.Is(err, memcache.ErrCacheMiss) {
+		return 0, cache.ErrCacheMiss()
 	}
-	return v, nil
-}
-
-func (c *memcacheCounter) init() error {
-	err := c.driver.client.Add(&memcache.Item{
-		Key:        c.key,
-		Value:      c.val,
-		Expiration: c.ttl,
-	})
-	if errors.Is(err, memcache.ErrNotStored) {
-		return nil
-	}
-	return err
+	return v, err
 }
 
 func (c *memcacheCounter) Value() (uint64, error) {
