@@ -16,7 +16,12 @@ type prefix struct {
 //	c := memory.New(...)
 //	p := cache.Prefix(c, "prefix_")
 //	p.Get("k1") // 相当于 c.Get("prefix_k1")
-func Prefix(a Cache, p string) Cache { return &prefix{prefix: p, cache: a} }
+func Prefix(a Cache, p string) Cache {
+	if pp, ok := a.(*prefix); ok {
+		return &prefix{prefix: pp.prefix + p, cache: pp.cache}
+	}
+	return &prefix{prefix: p, cache: a}
+}
 
 func (p *prefix) Get(key string, v any) error { return p.cache.Get(p.prefix+key, v) }
 
