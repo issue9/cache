@@ -43,6 +43,7 @@ func (d *memcacheDriver) Get(key string, val any) error {
 	} else if err != nil {
 		return err
 	}
+
 	return caches.Unmarshal(item.Value, val)
 }
 

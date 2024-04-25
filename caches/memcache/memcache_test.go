@@ -15,6 +15,16 @@ import (
 
 var _ cache.Cache = &memcacheDriver{}
 
+func BenchmarkMemcache(b *testing.B) {
+	a := assert.New(b, false)
+	c := New("localhost:11211")
+	a.NotNil(c)
+
+	cachetest.BenchCounter(b, c)
+	cachetest.BenchBasic(b, c)
+	cachetest.BenchObject(b, c)
+}
+
 func TestMemcache(t *testing.T) {
 	a := assert.New(t, false)
 

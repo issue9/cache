@@ -17,6 +17,16 @@ var _ cache.Cache = &redisDriver{}
 
 const redisURL = "redis://localhost:6379?dial_timeout=1&db=1&read_timeout=1&write_timeout=1"
 
+func BenchmarkRedis(b *testing.B) {
+	a := assert.New(b, false)
+	c, err := NewFromURL(redisURL)
+	a.NotError(err).NotNil(c)
+
+	cachetest.BenchCounter(b, c)
+	cachetest.BenchBasic(b, c)
+	cachetest.BenchObject(b, c)
+}
+
 func TestRedis(t *testing.T) {
 	a := assert.New(t, false)
 

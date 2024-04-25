@@ -16,6 +16,16 @@ import (
 
 var _ cache.Cache = &memoryDriver{}
 
+func BenchmarkMemory(b *testing.B) {
+	a := assert.New(b, false)
+	c, _ := New()
+	a.NotNil(c)
+
+	cachetest.BenchCounter(b, c)
+	cachetest.BenchBasic(b, c)
+	cachetest.BenchObject(b, c)
+}
+
 func TestMemory(t *testing.T) {
 	a := assert.New(t, false)
 
