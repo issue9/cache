@@ -35,12 +35,13 @@ type Cache interface {
 	// Set 设置或是添加缓存项
 	//
 	// key 表示保存该数据的唯一 ID；
-	// val 表示保存的数据对象，如果是结构体，需要所有的字段都是公开的或是实现了
-	// [Serializer] 接口，否则在缓存过程中将失去这些非公开的字段。
+	// val 表示保存的数据对象，如果是结构体，则会调用 gob 包进行序列化。
 	// ttl 表示过了该时间，缓存项将被回收。如果该值为 [Forever]，该值永远不会回收。
 	Set(key string, val any, ttl time.Duration) error
 
 	// Delete 删除一个缓存项
+	//
+	// 如果该项目不存在，则返回 nil。
 	Delete(string) error
 
 	// Exists 判断一个缓存项是否存在

@@ -59,7 +59,12 @@ func (d *memcacheDriver) Set(key string, val any, ttl time.Duration) error {
 	})
 }
 
-func (d *memcacheDriver) Delete(key string) error { return d.client.Delete(key) }
+func (d *memcacheDriver) Delete(key string) error {
+	if err := d.client.Delete(key); !errors.Is(err, memcache.ErrCacheMiss) {
+		return err
+	}
+	return nil
+}
 
 func (d *memcacheDriver) Exists(key string) bool {
 	_, err := d.client.Get(key)
