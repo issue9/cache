@@ -6,6 +6,7 @@
 package memory
 
 import (
+	"context"
 	"strconv"
 	"sync"
 	"time"
@@ -108,6 +109,8 @@ func (d *memoryDriver) Clean() error {
 func (d *memoryDriver) Close() error { return d.Clean() }
 
 func (d *memoryDriver) Driver() any { return d.items }
+
+func (d *memoryDriver) Ping(context.Context) error { return nil }
 
 func (d *memoryDriver) Counter(key string, ttl time.Duration) (cache.Counter, error) {
 	d.items.LoadOrStore(key, &item{

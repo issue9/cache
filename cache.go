@@ -9,6 +9,7 @@
 package cache
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -44,9 +45,10 @@ type Cache interface {
 	// Exists 判断一个缓存项是否存在
 	Exists(string) bool
 
-	// Counter 返回计数器操作接口
+	// Counter 从 key 指向的值初始化一个计数器操作接口
 	//
-	// key 表示计数器的名称，如果已经存在同名值，将采用该值，否则初始化为零。
+	// key 表示计数器在缓存中的名称，如果已经存在同名值，将采用该值，否则初始化为零。
+	// 如果 key 指定的值无法被当作数值操作，将在后续的操作中返回相应的错误。
 	Counter(key string, ttl time.Duration) (Counter, error)
 }
 
@@ -81,6 +83,9 @@ type Cleanable interface {
 // 新的驱动可以采用 [github.com/issue9/cache/cachetest] 对接口进行测试，看是否符合要求。
 type Driver interface {
 	Cleanable
+
+	// Ping 检测连接是否依然有效
+	Ping(context.Context) error
 
 	// Close 关闭客户端
 	Close() error

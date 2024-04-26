@@ -6,6 +6,7 @@
 package memcache
 
 import (
+	"context"
 	"errors"
 	"strconv"
 	"time"
@@ -76,6 +77,8 @@ func (d *memcacheDriver) Clean() error { return d.client.DeleteAll() }
 func (d *memcacheDriver) Close() error { return d.client.Close() }
 
 func (d *memcacheDriver) Driver() any { return d.client }
+
+func (d *memcacheDriver) Ping(context.Context) error { return d.client.Ping() }
 
 func (d *memcacheDriver) Counter(key string, ttl time.Duration) (cache.Counter, error) {
 	if !d.Exists(key) {
