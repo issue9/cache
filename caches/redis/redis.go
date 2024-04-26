@@ -83,7 +83,14 @@ func (d *redisDriver) Close() error { return d.conn.Close() }
 
 func (d *redisDriver) Driver() any { return d.conn }
 
-func (d *redisDriver) Ping(ctx context.Context) error { return d.conn.Ping(ctx).Err() }
+func (d *redisDriver) Ping() error { return d.conn.Ping(context.Background()).Err() }
+
+func (d *redisDriver) Touch(key string, ttl time.Duration) (err error) {
+	if _, err = d.conn.Expire(context.Background(), key, ttl).Result(); errors.Is(err, redis.Nil) {
+		err = nil
+	}
+	return err
+}
 
 func (d *redisDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.SetCounterFunc, err error) {
 	if n, err = cache.Get[uint64](d, key); errors.Is(err, cache.ErrCacheMiss()) {

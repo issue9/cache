@@ -6,7 +6,6 @@
 package memcache
 
 import (
-	"context"
 	"errors"
 	"time"
 
@@ -71,7 +70,14 @@ func (d *memcacheDriver) Close() error { return d.client.Close() }
 
 func (d *memcacheDriver) Driver() any { return d.client }
 
-func (d *memcacheDriver) Ping(context.Context) error { return d.client.Ping() }
+func (d *memcacheDriver) Ping() error { return d.client.Ping() }
+
+func (d *memcacheDriver) Touch(key string, ttl time.Duration) (err error) {
+	if err = d.client.Touch(key, int32(ttl.Seconds())); errors.Is(err, memcache.ErrCacheMiss) {
+		err = nil
+	}
+	return err
+}
 
 func (d *memcacheDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.SetCounterFunc, err error) {
 	t := int32(ttl.Seconds())

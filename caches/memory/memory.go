@@ -6,7 +6,6 @@
 package memory
 
 import (
-	"context"
 	"strconv"
 	"sync"
 	"time"
@@ -103,7 +102,14 @@ func (d *memoryDriver) Close() error { return d.Clean() }
 
 func (d *memoryDriver) Driver() any { return d.items }
 
-func (d *memoryDriver) Ping(context.Context) error { return nil }
+func (d *memoryDriver) Ping() error { return nil }
+
+func (d *memoryDriver) Touch(key string, ttl time.Duration) error {
+	if i, found := d.findItem(key); found {
+		i.expire = time.Now().Add(i.dur)
+	}
+	return nil
+}
 
 func (d *memoryDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.SetCounterFunc, err error) {
 	i, loaded := d.items.LoadOrStore(key, &item{

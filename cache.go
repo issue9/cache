@@ -9,7 +9,6 @@
 package cache
 
 import (
-	"context"
 	"errors"
 	"time"
 
@@ -45,6 +44,11 @@ type Cache interface {
 	// Exists 判断一个缓存项是否存在
 	Exists(string) bool
 
+	// Touch 重新设置缓存项的过期时间
+	//
+	// 如果不存在该项，不会返回 [ErrCacheMiss]，而是 nil。
+	Touch(key string, ttl time.Duration) error
+
 	// Counter 从 key 指向的值初始化一个计数器操作接口
 	//
 	// key 表示计数器在缓存中的名称，如果已经存在同名值，将采用该值，否则初始化为零。
@@ -58,6 +62,8 @@ type Cache interface {
 //
 // n 为增加的数值，如果为负数，则表示减少。
 // 返回的数值为操作完成之后的数值，如果数值被删除，则返回 [ErrCacheMiss] 错误。
+//
+// 调用此方法也会更新元素的 TTL 值。
 type SetCounterFunc func(n int) (uint64, error)
 
 // Cleanable 可清除所有缓存内容的接口
@@ -76,7 +82,7 @@ type Driver interface {
 	Cleanable
 
 	// Ping 检测连接是否依然有效
-	Ping(context.Context) error
+	Ping() error
 
 	// Close 关闭客户端
 	Close() error

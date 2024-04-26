@@ -62,11 +62,14 @@ func Basic(a *assert.Assertion, c cache.Driver) {
 	a.ErrorIs(err, cache.ErrCacheMiss(), "找到了一个并不存在的值").
 		Zero(v, "查找一个并不存在的值，且有返回。")
 
+	a.Nil(c.Touch("not_exists", time.Second))
+
 	a.NotError(c.Set("k1", 123, cache.Forever))
 	var num int
 	err = c.Get("k1", &num)
 	a.NotError(err, "Forever 返回未知错误 %s", err).
-		Equal(num, 123)
+		Equal(num, 123).
+		NotError(c.Touch("k1", time.Second))
 
 	now := time.Now()
 	a.NotError(c.Set("t1", now, cache.Forever))
