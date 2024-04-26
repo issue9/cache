@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+// Package memory 基于内存的实现
 package memory
 
 import (
@@ -21,7 +22,7 @@ type memoryCounter struct {
 	driver  *memoryDriver
 	key     string
 	expires time.Duration
-	locker  sync.RWMutex
+	locker  sync.Mutex
 }
 
 type item struct {
@@ -30,26 +31,14 @@ type item struct {
 	expire time.Time // 过期的时间
 }
 
-func (i *item) update(val any) (err error) {
-	if i.val, err = caches.Marshal(val); err == nil {
-		i.expire = time.Now().Add(i.dur)
-	}
-	return err
-}
-
-func (i *item) isExpired(now time.Time) bool {
-	return i.dur != 0 && i.expire.Before(now)
-}
-
 // New 声明一个内存缓存
 //
-// gc 表示执行内存回收的操作。
 // [cache.Driver.Driver] 的返回类型为 [sync.Map]。
-func New() (driver cache.Driver, gc func(time.Time)) {
+func New() cache.Driver {
 	mem := &memoryDriver{
 		items: &sync.Map{},
 	}
-	return mem, mem.gc
+	return mem
 }
 
 func (d *memoryDriver) Get(key string, v any) error {
@@ -64,7 +53,14 @@ func (d *memoryDriver) findItem(key string) (*item, bool) {
 	if !found {
 		return nil, false
 	}
-	return i.(*item), true
+
+	ii := i.(*item)
+	if ii.dur > 0 && ii.expire.Before(time.Now()) {
+		d.items.Delete(key)
+		return nil, false
+	}
+
+	return ii, true
 }
 
 func (d *memoryDriver) Set(key string, val any, ttl time.Duration) error {
@@ -83,7 +79,12 @@ func (d *memoryDriver) Set(key string, val any, ttl time.Duration) error {
 		return nil
 	}
 
-	return i.update(val)
+	bs, err := caches.Marshal(val)
+	if err == nil {
+		i.expire = time.Now().Add(i.dur)
+		i.val = bs
+	}
+	return err
 }
 
 func (d *memoryDriver) Delete(key string) error {
@@ -92,7 +93,7 @@ func (d *memoryDriver) Delete(key string) error {
 }
 
 func (d *memoryDriver) Exists(key string) bool {
-	_, found := d.items.Load(key)
+	_, found := d.findItem(key)
 	return found
 }
 
@@ -107,15 +108,6 @@ func (d *memoryDriver) Clean() error {
 func (d *memoryDriver) Close() error { return d.Clean() }
 
 func (d *memoryDriver) Driver() any { return d.items }
-
-func (d *memoryDriver) gc(now time.Time) {
-	d.items.Range(func(key, val any) bool {
-		if v := val.(*item); v.isExpired(now) {
-			d.items.Delete(key)
-		}
-		return true
-	})
-}
 
 func (d *memoryDriver) Counter(key string, val uint64, ttl time.Duration) (cache.Counter, error) {
 	d.items.Store(key, &item{

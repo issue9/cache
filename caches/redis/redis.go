@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+// Package redis 适配 redis 的实现
 package redis
 
 import (

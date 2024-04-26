@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+// Package memcache 适配 memcached 的实现
 package memcache
 
 import (

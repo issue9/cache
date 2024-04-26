@@ -28,6 +28,8 @@ import (
 // 大部分时候 [cache.Driver] 的实现者直接调用此方法即可。
 func Marshal(val any) ([]byte, error) {
 	switch v := val.(type) {
+	case []byte:
+		return v, nil
 	case string:
 		return []byte(v), nil
 	case int:
@@ -64,6 +66,9 @@ func Marshal(val any) ([]byte, error) {
 
 func Unmarshal(bs []byte, val any) (err error) {
 	switch v := val.(type) {
+	case *[]byte:
+		*v = bs
+		return nil
 	case *string:
 		*v = string(bs)
 		return nil

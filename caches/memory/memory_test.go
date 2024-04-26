@@ -6,7 +6,6 @@ package memory
 
 import (
 	"testing"
-	"time"
 
 	"github.com/issue9/assert/v4"
 
@@ -18,7 +17,7 @@ var _ cache.Cache = &memoryDriver{}
 
 func BenchmarkMemory(b *testing.B) {
 	a := assert.New(b, false)
-	c, _ := New()
+	c := New()
 	a.NotNil(c)
 
 	cachetest.BenchCounter(b, c)
@@ -29,20 +28,14 @@ func BenchmarkMemory(b *testing.B) {
 func TestMemory(t *testing.T) {
 	a := assert.New(t, false)
 
-	c, gc := New()
+	c := New()
 	a.NotNil(c)
 
-	ticker := time.NewTicker(500 * time.Millisecond)
-	go func() {
-		for now := range ticker.C {
-			gc(now)
-		}
-	}()
+
 
 	cachetest.Basic(a, c)
 	cachetest.Object(a, c)
 	cachetest.Counter(a, c)
 
 	a.NotError(c.Close())
-	ticker.Stop()
 }

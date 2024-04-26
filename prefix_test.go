@@ -16,7 +16,7 @@ import (
 func TestPrefix(t *testing.T) {
 	a := assert.New(t, false)
 
-	d, _ := memory.New()
+	d := memory.New()
 	a.NotNil(d)
 
 	p1 := cache.Prefix(d, "p1")

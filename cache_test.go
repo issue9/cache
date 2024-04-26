@@ -17,7 +17,7 @@ import (
 func TestGetOrInit(t *testing.T) {
 	a := assert.New(t, false)
 
-	d, _ := memory.New()
+	d := memory.New()
 	a.NotNil(d)
 
 	var v1 string
@@ -36,7 +36,7 @@ func TestGetOrInit(t *testing.T) {
 func TestGet(t *testing.T) {
 	a := assert.New(t, false)
 
-	d, _ := memory.New()
+	d := memory.New()
 	a.NotNil(d)
 
 	v1, err := cache.Get[string](d, "v1")
