@@ -90,8 +90,8 @@ func (d *redisDriver) Close() error { return d.conn.Close() }
 
 func (d *redisDriver) Driver() any { return d.conn }
 
-func (d *redisDriver) Counter(key string, val uint64, ttl time.Duration) (cache.Counter, error) {
-	if err := d.conn.Set(context.Background(), key, val, ttl).Err(); err != nil {
+func (d *redisDriver) Counter(key string, ttl time.Duration) (cache.Counter, error) {
+	if err := d.conn.SetNX(context.Background(), key, 0, ttl).Err(); err != nil {
 		return nil, err
 	}
 

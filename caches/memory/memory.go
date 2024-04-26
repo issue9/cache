@@ -109,9 +109,9 @@ func (d *memoryDriver) Close() error { return d.Clean() }
 
 func (d *memoryDriver) Driver() any { return d.items }
 
-func (d *memoryDriver) Counter(key string, val uint64, ttl time.Duration) (cache.Counter, error) {
-	d.items.Store(key, &item{
-		val:    []byte(strconv.FormatUint(val, 10)),
+func (d *memoryDriver) Counter(key string, ttl time.Duration) (cache.Counter, error) {
+	d.items.LoadOrStore(key, &item{
+		val:    []byte(strconv.FormatUint(0, 10)),
 		dur:    ttl,
 		expire: time.Now().Add(ttl),
 	})

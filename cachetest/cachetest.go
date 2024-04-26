@@ -15,21 +15,23 @@ import (
 
 // Counter 测试计数器
 func Counter(a *assert.Assertion, d cache.Driver) {
-	c, err := d.Counter("v1", 50, time.Second)
+	c, err := d.Counter("v1", time.Second)
 	a.NotError(err).NotNil(c)
 
 	v1, err := c.Value()
-	a.NotError(err).Equal(v1, 50)
+	a.NotError(err).Equal(v1, 0)
 
 	v1, err = c.Incr(5)
-	a.NotError(err).Equal(v1, 55)
+	a.NotError(err).Equal(v1, 5)
 	v1, err = c.Value()
-	a.Nil(err).Equal(v1, 55)
+	a.Nil(err).Equal(v1, 5)
 
 	v1, err = c.Decr(3)
-	a.NotError(err).Equal(v1, 52)
+	a.NotError(err).Equal(v1, 2)
 	v1, err = c.Value()
-	a.Nil(err).Equal(v1, 52)
+	a.Nil(err).Equal(v1, 2)
+	v1, err = c.Decr(1)
+	a.NotError(err).Equal(v1, 1)
 
 	a.True(d.Exists("v1"))
 
@@ -43,15 +45,15 @@ func Counter(a *assert.Assertion, d cache.Driver) {
 
 	// 多个 Counter 指向同一个 key
 
-	c1, err := d.Counter("v3", 50, time.Second)
+	c1, err := d.Counter("v3", time.Second)
 	a.NotError(err).NotNil(c1)
-	v1, err = c1.Decr(5)
-	a.NotError(err).Equal(v1, 45)
+	v1, err = c1.Incr(5)
+	a.NotError(err).Equal(v1, 5)
 
-	c2, err := d.Counter("v3", 50, time.Second)
+	c2, err := d.Counter("v3", time.Second)
 	a.NotError(err).NotNil(c2)
 	v2, err = c2.Value()
-	a.NotError(err).Equal(v2, 50)
+	a.NotError(err).Equal(v2, 5)
 }
 
 // Basic 测试基本功能

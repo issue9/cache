@@ -33,6 +33,6 @@ func (p *prefix) Delete(key string) error { return p.cache.Delete(p.prefix + key
 
 func (p *prefix) Exists(key string) bool { return p.cache.Exists(p.prefix + key) }
 
-func (p *prefix) Counter(key string, val uint64, ttl time.Duration) (Counter, error) {
-	return p.cache.Counter(p.prefix+key, val, ttl)
+func (p *prefix) Counter(key string, ttl time.Duration) (Counter, error) {
+	return p.cache.Counter(p.prefix+key, ttl)
 }

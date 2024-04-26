@@ -31,8 +31,6 @@ func TestMemory(t *testing.T) {
 	c := New()
 	a.NotNil(c)
 
-
-
 	cachetest.Basic(a, c)
 	cachetest.Object(a, c)
 	cachetest.Counter(a, c)

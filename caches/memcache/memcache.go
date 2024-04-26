@@ -77,14 +77,16 @@ func (d *memcacheDriver) Close() error { return d.client.Close() }
 
 func (d *memcacheDriver) Driver() any { return d.client }
 
-func (d *memcacheDriver) Counter(key string, val uint64, ttl time.Duration) (cache.Counter, error) {
-	err := d.client.Set(&memcache.Item{
-		Key:        key,
-		Value:      []byte(strconv.FormatUint(val, 10)),
-		Expiration: int32(ttl.Seconds()),
-	})
-	if err != nil {
-		return nil, err
+func (d *memcacheDriver) Counter(key string, ttl time.Duration) (cache.Counter, error) {
+	if !d.Exists(key) {
+		err := d.client.Set(&memcache.Item{
+			Key:        key,
+			Value:      []byte(strconv.FormatUint(0, 10)),
+			Expiration: int32(ttl.Seconds()),
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &memcacheCounter{

@@ -46,9 +46,8 @@ type Cache interface {
 
 	// Counter 返回计数器操作接口
 	//
-	// key 表示计数器的名称，如果已经存在同名值，那么将被覆盖。
-	// val 和 ttl 表示在该计数器不存在时，初始化的值以及回收时间。
-	Counter(key string, val uint64, ttl time.Duration) (Counter, error)
+	// key 表示计数器的名称，如果已经存在同名值，将采用该值，否则初始化为零。
+	Counter(key string, ttl time.Duration) (Counter, error)
 }
 
 // Counter 计数器需要实现的接口
