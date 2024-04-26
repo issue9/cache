@@ -19,13 +19,6 @@ type memoryDriver struct {
 	items *sync.Map
 }
 
-type memoryCounter struct {
-	driver  *memoryDriver
-	key     string
-	expires time.Duration
-	locker  sync.Mutex
-}
-
 type item struct {
 	val    []byte
 	dur    time.Duration
@@ -112,64 +105,56 @@ func (d *memoryDriver) Driver() any { return d.items }
 
 func (d *memoryDriver) Ping(context.Context) error { return nil }
 
-func (d *memoryDriver) Counter(key string, ttl time.Duration) (cache.Counter, error) {
-	d.items.LoadOrStore(key, &item{
+func (d *memoryDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.SetCounterFunc, err error) {
+	i, loaded := d.items.LoadOrStore(key, &item{
 		val:    []byte(strconv.FormatUint(0, 10)),
 		dur:    ttl,
 		expire: time.Now().Add(ttl),
 	})
+	if loaded {
+		if n, err = strconv.ParseUint(string(i.(*item).val), 10, 64); err != nil {
+			return 0, nil, err
+		}
+	} else {
+		n = 0
+	}
 
-	return &memoryCounter{
-		driver:  d,
-		key:     key,
-		expires: ttl,
+	var locker sync.Mutex
+
+	return n, func(n int) (uint64, error) {
+		locker.Lock()
+		defer locker.Unlock()
+
+		var num uint64
+		if i, found := d.items.Load(key); found {
+			num, err = strconv.ParseUint(string(i.(*item).val), 10, 64)
+			if err != nil {
+				return 0, err
+			}
+		} else {
+			return 0, cache.ErrCacheMiss()
+		}
+
+		switch {
+		case n == 0:
+			return num, nil
+		case n > 0:
+			num += uint64(n)
+		case n < 0:
+			n = -n
+			if uint64(n) >= num {
+				num = 0
+			} else {
+				num -= uint64(n)
+			}
+		}
+
+		d.items.Store(key, &item{
+			val:    []byte(strconv.FormatUint(num, 10)),
+			dur:    ttl,
+			expire: time.Now().Add(ttl),
+		})
+
+		return num, nil
 	}, nil
 }
-
-func (c *memoryCounter) Incr(n uint64) (uint64, error) {
-	c.locker.Lock()
-	defer c.locker.Unlock()
-
-	v, err := c.Value()
-	if err != nil {
-		return 0, err
-	}
-
-	v += n
-	c.driver.items.Store(c.key, &item{
-		val:    []byte(strconv.FormatUint(v, 10)),
-		dur:    c.expires,
-		expire: time.Now().Add(c.expires),
-	})
-	return v, nil
-}
-
-func (c *memoryCounter) Decr(n uint64) (uint64, error) {
-	c.locker.Lock()
-	defer c.locker.Unlock()
-
-	v, err := c.Value()
-	if err != nil {
-		return 0, err
-	}
-	if n > v {
-		v = 0
-	} else {
-		v -= n
-	}
-	c.driver.items.Store(c.key, &item{
-		val:    []byte(strconv.FormatUint(v, 10)),
-		dur:    c.expires,
-		expire: time.Now().Add(c.expires),
-	})
-	return v, nil
-}
-
-func (c *memoryCounter) Value() (uint64, error) {
-	if i, found := c.driver.items.Load(c.key); found {
-		return strconv.ParseUint(string(i.(*item).val), 10, 64)
-	}
-	return 0, cache.ErrCacheMiss()
-}
-
-func (c *memoryCounter) Delete() error { return c.driver.Delete(c.key) }

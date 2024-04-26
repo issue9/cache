@@ -16,19 +16,19 @@ import (
 // BenchCounter 测试计数器的性能
 func BenchCounter(b *testing.B, d cache.Driver) {
 	a := assert.New(b, false)
-	c, err := d.Counter("v1", cache.Forever)
-	a.NotError(err).NotNil(c)
+	c, set, err := d.Counter("v1", cache.Forever)
+	a.NotError(err).Zero(c).NotNil(set)
 
 	b.Run("incr", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_, err := c.Incr(1)
+			_, err := set(1)
 			a.NotError(err)
 		}
 	})
 
 	b.Run("decr", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_, err := c.Decr(1)
+			_, err := set(-1)
 			a.NotError(err)
 		}
 	})

@@ -49,25 +49,16 @@ type Cache interface {
 	//
 	// key 表示计数器在缓存中的名称，如果已经存在同名值，将采用该值，否则初始化为零。
 	// 如果 key 指定的值无法被当作数值操作，将在后续的操作中返回相应的错误。
-	Counter(key string, ttl time.Duration) (Counter, error)
-}
-
-// Counter 计数器需要实现的接口
-type Counter interface {
-	// Incr 增加计数并返回增加后的值
-	Incr(uint64) (uint64, error)
-
-	// Decr 减少数值并返回减少后的值
-	Decr(uint64) (uint64, error)
-
-	// Value 返回该计数器的当前值
-	Value() (uint64, error)
-
-	// Delete 删除当前的计数器
 	//
-	// 当计数器不存在时，不应该返回错误。
-	Delete() error
+	// 返回元素的当前值以及用于对数值进行加减操作的方法。
+	Counter(key string, ttl time.Duration) (uint64, SetCounterFunc, error)
 }
+
+// SetCounterFunc 为计数器增加数值的函数原型
+//
+// n 为增加的数值，如果为负数，则表示减少。
+// 返回的数值为操作完成之后的数值，如果数值被删除，则返回 [ErrCacheMiss] 错误。
+type SetCounterFunc func(n int) (uint64, error)
 
 // Cleanable 可清除所有缓存内容的接口
 type Cleanable interface {

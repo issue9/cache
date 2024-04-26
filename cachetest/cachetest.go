@@ -15,45 +15,41 @@ import (
 
 // Counter 测试计数器
 func Counter(a *assert.Assertion, d cache.Driver) {
-	c, err := d.Counter("v1", time.Second)
-	a.NotError(err).NotNil(c)
+	n, set, err := d.Counter("v1", time.Second)
+	a.NotError(err).Zero(n).NotNil(set)
 
-	v1, err := c.Value()
+	v1, err := set(0)
 	a.NotError(err).Equal(v1, 0)
 
-	v1, err = c.Incr(5)
+	v1, err = set(5)
 	a.NotError(err).Equal(v1, 5)
-	v1, err = c.Value()
-	a.Nil(err).Equal(v1, 5)
 
-	v1, err = c.Decr(3)
+	v1, err = set(-3)
 	a.NotError(err).Equal(v1, 2)
-	v1, err = c.Value()
-	a.Nil(err).Equal(v1, 2)
-	v1, err = c.Decr(1)
+	v1, err = set(-1)
 	a.NotError(err).Equal(v1, 1)
 
 	a.True(d.Exists("v1"))
 
-	a.NotError(c.Delete())
+	a.NotError(d.Delete("v1"))
 	a.False(d.Exists("v1"))
 
-	v2, err := c.Decr(3) // 已经被删除
+	v2, err := set(3) // 已经被删除
 	a.ErrorIs(err, cache.ErrCacheMiss()).Zero(v2)
-	v2, err = c.Incr(3) // 已经被删除
+	v2, err = set(3) // 已经被删除
 	a.ErrorIs(err, cache.ErrCacheMiss()).Zero(v2)
 
 	// 多个 Counter 指向同一个 key
 
-	c1, err := d.Counter("v3", time.Second)
-	a.NotError(err).NotNil(c1)
-	v1, err = c1.Incr(5)
+	n1, set1, err := d.Counter("v3", time.Second)
+	a.NotError(err).Zero(n1).NotNil(set1)
+	v1, err = set1(5)
 	a.NotError(err).Equal(v1, 5)
 
-	c2, err := d.Counter("v3", time.Second)
-	a.NotError(err).NotNil(c2)
-	v2, err = c2.Value()
-	a.NotError(err).Equal(v2, 5)
+	n2, set2, err := d.Counter("v3", time.Second)
+	a.NotError(err).Equal(n2, 5)
+	v2, err = set2(-5)
+	a.NotError(err).Equal(v2, 0)
 }
 
 // Basic 测试基本功能

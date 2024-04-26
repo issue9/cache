@@ -8,7 +8,6 @@ package redis
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -20,12 +19,6 @@ import (
 type redisDriver struct {
 	conn         *redis.Client
 	decrByScript *redis.Script
-}
-
-type redisCounter struct {
-	driver *redisDriver
-	key    string
-	ttl    time.Duration
 }
 
 // redis 处理 DECRBY 的事务脚本
@@ -92,50 +85,40 @@ func (d *redisDriver) Driver() any { return d.conn }
 
 func (d *redisDriver) Ping(ctx context.Context) error { return d.conn.Ping(ctx).Err() }
 
-func (d *redisDriver) Counter(key string, ttl time.Duration) (cache.Counter, error) {
-	if err := d.conn.SetNX(context.Background(), key, 0, ttl).Err(); err != nil {
-		return nil, err
+func (d *redisDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.SetCounterFunc, err error) {
+	if n, err = cache.Get[uint64](d, key); errors.Is(err, cache.ErrCacheMiss()) {
+		err = d.Set(key, 0, ttl)
+		n = 0
+	}
+	if err != nil {
+		return 0, nil, err
 	}
 
-	return &redisCounter{
-		driver: d,
-		key:    key,
-		ttl:    ttl,
+	return n, func(n int) (uint64, error) {
+		switch {
+		default: // n==0
+			return cache.Get[uint64](d, key)
+		case n > 0:
+			if !d.Exists(key) {
+				return 0, cache.ErrCacheMiss()
+			}
+
+			rslt, err := d.conn.IncrBy(context.Background(), key, int64(n)).Result()
+			if err == nil && ttl > 0 {
+				_, err = d.conn.Expire(context.Background(), key, ttl).Result()
+			}
+			return uint64(rslt), err
+		case n < 0:
+			n = -n
+			if !d.Exists(key) {
+				return 0, cache.ErrCacheMiss()
+			}
+
+			v, err := d.decrByScript.Run(context.Background(), d.conn, []string{key}, int64(n)).Int64()
+			if err == nil && ttl > 0 {
+				_, err = d.conn.Expire(context.Background(), key, ttl).Result()
+			}
+			return uint64(v), err
+		}
 	}, nil
 }
-
-func (c *redisCounter) Incr(n uint64) (uint64, error) {
-	if !c.driver.Exists(c.key) {
-		return 0, cache.ErrCacheMiss()
-	}
-
-	rslt, err := c.driver.conn.IncrBy(context.Background(), c.key, int64(n)).Result()
-	if err == nil && c.ttl > 0 {
-		_, err = c.driver.conn.Expire(context.Background(), c.key, c.ttl).Result()
-	}
-	return uint64(rslt), err
-}
-
-func (c *redisCounter) Decr(n uint64) (uint64, error) {
-	if !c.driver.Exists(c.key) {
-		return 0, cache.ErrCacheMiss()
-	}
-
-	v, err := c.driver.decrByScript.Run(context.Background(), c.driver.conn, []string{c.key}, int64(n)).Int64()
-	if err == nil && c.ttl > 0 {
-		_, err = c.driver.conn.Expire(context.Background(), c.key, c.ttl).Result()
-	}
-	return uint64(v), err
-}
-
-func (c *redisCounter) Value() (uint64, error) {
-	s, err := c.driver.conn.Get(context.Background(), c.key).Result()
-	if errors.Is(err, redis.Nil) {
-		return 0, cache.ErrCacheMiss()
-	} else if err != nil {
-		return 0, err
-	}
-	return strconv.ParseUint(s, 10, 64)
-}
-
-func (c *redisCounter) Delete() error { return c.driver.conn.Del(context.Background(), c.key).Err() }
