@@ -35,6 +35,6 @@ func (p *prefix) Exists(key string) bool { return p.cache.Exists(p.prefix + key)
 
 func (p *prefix) Touch(key string, ttl time.Duration) error { return p.cache.Touch(p.prefix+key, ttl) }
 
-func (p *prefix) Counter(key string, ttl time.Duration) (uint64, SetCounterFunc, error) {
+func (p *prefix) Counter(key string, ttl time.Duration) (uint64, SetCounterFunc, bool, error) {
 	return p.cache.Counter(p.prefix+key, ttl)
 }

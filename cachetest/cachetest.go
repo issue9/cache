@@ -15,8 +15,8 @@ import (
 
 // Counter 测试计数器
 func Counter(a *assert.Assertion, d cache.Driver) {
-	n, set, err := d.Counter("v1", time.Second)
-	a.NotError(err).Zero(n).NotNil(set)
+	n, set, found, err := d.Counter("v1", time.Second)
+	a.NotError(err).Zero(n).NotNil(set).False(found)
 
 	v1, err := set(0)
 	a.NotError(err).Equal(v1, 0)
@@ -41,13 +41,13 @@ func Counter(a *assert.Assertion, d cache.Driver) {
 
 	// 多个 Counter 指向同一个 key
 
-	n1, set1, err := d.Counter("v3", time.Second)
-	a.NotError(err).Zero(n1).NotNil(set1)
+	n1, set1, found, err := d.Counter("v3", time.Second)
+	a.NotError(err).Zero(n1).NotNil(set1).False(found)
 	v1, err = set1(5)
 	a.NotError(err).Equal(v1, 5)
 
-	n2, set2, err := d.Counter("v3", time.Second)
-	a.NotError(err).Equal(n2, 5)
+	n2, set2, found, err := d.Counter("v3", time.Second)
+	a.NotError(err).Equal(n2, 5).True(found)
 	v2, err = set2(-5)
 	a.NotError(err).Equal(v2, 0)
 }

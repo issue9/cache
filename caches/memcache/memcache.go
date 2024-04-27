@@ -79,15 +79,17 @@ func (d *memcacheDriver) Touch(key string, ttl time.Duration) (err error) {
 	return err
 }
 
-func (d *memcacheDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.SetCounterFunc, err error) {
+func (d *memcacheDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.SetCounterFunc, exist bool, err error) {
 	t := int32(ttl.Seconds())
 
 	if n, err = cache.Get[uint64](d, key); errors.Is(err, cache.ErrCacheMiss()) {
 		err = d.Set(key, 0, ttl)
 		n = 0
+	} else {
+		exist = true
 	}
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, false, err
 	}
 
 	return n, func(n int) (uint64, error) {
@@ -116,5 +118,5 @@ func (d *memcacheDriver) Counter(key string, ttl time.Duration) (n uint64, f cac
 			}
 			return v, err
 		}
-	}, nil
+	}, exist, nil
 }

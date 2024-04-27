@@ -27,12 +27,7 @@ type item struct {
 // New 声明一个内存缓存
 //
 // [cache.Driver.Driver] 的返回类型为 [sync.Map]。
-func New() cache.Driver {
-	mem := &memoryDriver{
-		items: &sync.Map{},
-	}
-	return mem
-}
+func New() cache.Driver { return &memoryDriver{items: &sync.Map{}} }
 
 func (d *memoryDriver) Get(key string, v any) error {
 	if item, found := d.findItem(key); found {
@@ -111,15 +106,16 @@ func (d *memoryDriver) Touch(key string, ttl time.Duration) error {
 	return nil
 }
 
-func (d *memoryDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.SetCounterFunc, err error) {
+func (d *memoryDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.SetCounterFunc, exist bool, err error) {
 	i, loaded := d.items.LoadOrStore(key, &item{
 		val:    []byte(strconv.FormatUint(0, 10)),
 		dur:    ttl,
 		expire: time.Now().Add(ttl),
 	})
 	if loaded {
+		exist = true
 		if n, err = strconv.ParseUint(string(i.(*item).val), 10, 64); err != nil {
-			return 0, nil, err
+			return 0, nil, false, err
 		}
 	} else {
 		n = 0
@@ -162,5 +158,5 @@ func (d *memoryDriver) Counter(key string, ttl time.Duration) (n uint64, f cache
 		})
 
 		return num, nil
-	}, nil
+	}, exist, nil
 }

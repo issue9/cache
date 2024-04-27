@@ -92,13 +92,15 @@ func (d *redisDriver) Touch(key string, ttl time.Duration) (err error) {
 	return err
 }
 
-func (d *redisDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.SetCounterFunc, err error) {
+func (d *redisDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.SetCounterFunc, exist bool, err error) {
 	if n, err = cache.Get[uint64](d, key); errors.Is(err, cache.ErrCacheMiss()) {
 		err = d.Set(key, 0, ttl)
 		n = 0
+	} else {
+		exist = true
 	}
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, false, err
 	}
 
 	return n, func(n int) (uint64, error) {
@@ -127,5 +129,5 @@ func (d *redisDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.
 			}
 			return uint64(v), err
 		}
-	}, nil
+	}, exist, nil
 }

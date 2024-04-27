@@ -16,8 +16,8 @@ import (
 // BenchCounter 测试计数器的性能
 func BenchCounter(b *testing.B, d cache.Driver) {
 	a := assert.New(b, false)
-	c, set, err := d.Counter("v1", cache.Forever)
-	a.NotError(err).Zero(c).NotNil(set)
+	c, set, found, err := d.Counter("v1", cache.Forever)
+	a.NotError(err).Zero(c).NotNil(set).False(found)
 
 	b.Run("incr", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
