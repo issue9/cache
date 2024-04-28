@@ -28,6 +28,8 @@ func Counter(a *assert.Assertion, d cache.Driver) {
 	a.NotError(err).Equal(v1, 2)
 	v1, err = set(-1)
 	a.NotError(err).Equal(v1, 1)
+	v1, err = set(-10) // 小于 0，自动归 0
+	a.NotError(err).Equal(v1, 0)
 
 	a.True(d.Exists("v1"))
 

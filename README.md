@@ -28,6 +28,10 @@ c = memcache.New("localhost:11211")
 c.Set("number", 1)
 c.Get("number", &v)
 print(v)
+
+n, setN, exists, err := c.Counter("n")
+setN(-1) // 为 n 减 1
+setN(10) // 为 n 加上 10
 ```
 
 ## 安装
