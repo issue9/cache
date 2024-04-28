@@ -22,10 +22,10 @@ import (
 
 // Marshal 序列化对象
 //
-// 这是 [cache.Cache] 存储对象时的转换方法，采用 GOB 编码，
+// 这是 [github.com/issue9/cache.Cache] 存储对象时的转换方法，采用 GOB 编码，
 // 如需要自定义，可实现 [gob.GobEncoder] 和 [gob.GobDecoder]。
 //
-// 大部分时候 [cache.Driver] 的实现者直接调用此方法即可。
+// 大部分时候 [github.com/issue9/cache.Driver] 的实现者直接调用此方法即可。
 func Marshal(val any) ([]byte, error) {
 	switch v := val.(type) {
 	case []byte:
@@ -100,7 +100,7 @@ func Unmarshal(bs []byte, val any) (err error) {
 		*v, err = strconv.ParseInt(string(bs), 10, 64)
 		return err
 	case *uint:
-		vv, err := strconv.ParseUint(string(bs), 10, 64)
+		vv, err := strconv.ParseUint(string(bs), 10, strconv.IntSize)
 		if err != nil {
 			return err
 		}
