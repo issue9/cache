@@ -17,16 +17,18 @@ import (
 )
 
 type redisDriver struct {
-	conn         *redis.Client
+	client       *redis.Client
 	decrByScript *redis.Script
 }
 
 // redis 处理 DECRBY 的事务脚本
-const redisDecrByScript = `local cnt = redis.call('DECRBY', KEYS[1], ARGV[1])
+const redisDecrByScript = `
+local cnt = redis.call('DECRBY', KEYS[1], ARGV[1])
 if cnt < 0 then
     redis.call('SET', KEYS[1], '0')
 end
-return (cnt < 0 and 0 or cnt)`
+return (cnt < 0 and 0 or cnt)
+`
 
 // NewFromURL 声明基于 [redis] 的缓存系统
 //
@@ -46,13 +48,13 @@ func NewFromURL(url string) (cache.Driver, error) {
 // New 声明基于 redis 的缓存系统
 func New(c *redis.Client) cache.Driver {
 	return &redisDriver{
-		conn:         c,
+		client:       c,
 		decrByScript: redis.NewScript(redisDecrByScript),
 	}
 }
 
 func (d *redisDriver) Get(key string, val any) error {
-	bs, err := d.conn.Get(context.Background(), key).Bytes()
+	bs, err := d.client.Get(context.Background(), key).Bytes()
 	if errors.Is(err, redis.Nil) {
 		return cache.ErrCacheMiss()
 	} else if err != nil {
@@ -67,26 +69,26 @@ func (d *redisDriver) Set(key string, val any, ttl time.Duration) error {
 	if err != nil {
 		return err
 	}
-	return d.conn.Set(context.Background(), key, bs, ttl).Err()
+	return d.client.Set(context.Background(), key, bs, ttl).Err()
 }
 
-func (d *redisDriver) Delete(key string) error { return d.conn.Del(context.Background(), key).Err() }
+func (d *redisDriver) Delete(key string) error { return d.client.Del(context.Background(), key).Err() }
 
 func (d *redisDriver) Exists(key string) bool {
-	rslt, err := d.conn.Exists(context.Background(), key).Result()
+	rslt, err := d.client.Exists(context.Background(), key).Result()
 	return err == nil && rslt > 0
 }
 
-func (d *redisDriver) Clean() error { return d.conn.FlushDB(context.Background()).Err() }
+func (d *redisDriver) Clean() error { return d.client.FlushDB(context.Background()).Err() }
 
-func (d *redisDriver) Close() error { return d.conn.Close() }
+func (d *redisDriver) Close() error { return d.client.Close() }
 
-func (d *redisDriver) Driver() any { return d.conn }
+func (d *redisDriver) Driver() any { return d.client }
 
-func (d *redisDriver) Ping() error { return d.conn.Ping(context.Background()).Err() }
+func (d *redisDriver) Ping() error { return d.client.Ping(context.Background()).Err() }
 
 func (d *redisDriver) Touch(key string, ttl time.Duration) (err error) {
-	if _, err = d.conn.Expire(context.Background(), key, ttl).Result(); errors.Is(err, redis.Nil) {
+	if _, err = d.client.Expire(context.Background(), key, ttl).Result(); errors.Is(err, redis.Nil) {
 		err = nil
 	}
 	return err
@@ -112,22 +114,21 @@ func (d *redisDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.
 				return 0, cache.ErrCacheMiss()
 			}
 
-			rslt, err := d.conn.IncrBy(context.Background(), key, int64(n)).Result()
+			rslt, err := d.client.IncrBy(context.Background(), key, int64(n)).Result()
 			if err == nil && ttl > 0 {
-				_, err = d.conn.Expire(context.Background(), key, ttl).Result()
+				_, err = d.client.Expire(context.Background(), key, ttl).Result()
 			}
 			return uint64(rslt), err
 		case n < 0:
-			n = -n
 			if !d.Exists(key) {
 				return 0, cache.ErrCacheMiss()
 			}
 
-			v, err := d.decrByScript.Run(context.Background(), d.conn, []string{key}, int64(n)).Int64()
+			rslt, err := d.decrByScript.Run(context.Background(), d.client, []string{key}, int64(-n)).Int64()
 			if err == nil && ttl > 0 {
-				_, err = d.conn.Expire(context.Background(), key, ttl).Result()
+				_, err = d.client.Expire(context.Background(), key, ttl).Result()
 			}
-			return uint64(v), err
+			return uint64(rslt), err
 		}
 	}, exist, nil
 }

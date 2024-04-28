@@ -107,8 +107,7 @@ func (d *memcacheDriver) Counter(key string, ttl time.Duration) (n uint64, f cac
 			}
 			return v, err
 		case n < 0:
-			nn := uint64(-n)
-			v, err := d.client.Decrement(key, nn)
+			v, err := d.client.Decrement(key, uint64(-n))
 			if err == nil && t > 0 {
 				err = d.client.Touch(key, t)
 			}
