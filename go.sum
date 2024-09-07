@@ -10,9 +10,9 @@ github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/r
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cuUVRXasLTGF7a8hSLbxyZXjz+1KgoB3wDUb6vlszIc=
 github.com/issue9/assert/v4 v4.3.0 h1:W3XDKmttsfzihYGxJ9rJoL2ViJgWERB9IxfHcxjv65U=
 github.com/issue9/assert/v4 v4.3.0/go.mod h1:v7qDRXi7AsaZZNh8eAK2rkLJg5/clztqQGA1DRv9Lv4=
-github.com/issue9/localeutil v0.27.1 h1:4xXFre80erqVXFgWX3YpdVnHBUOWS6W1vJjWtOvczXQ=
-github.com/issue9/localeutil v0.27.1/go.mod h1:huwbPnXEl1jU2SBIm/FLNWfL7ZJKBjP7J34+A/OE4yQ=
+github.com/issue9/localeutil v0.27.2 h1:RkFLlDS/0W/YEIUUPyokdtegTp+DFMZ7/iR1V9OHUQg=
+github.com/issue9/localeutil v0.27.2/go.mod h1:IEm/2ehzJQ1M4XSnrWOhGeV+uF624oga53IgNBZ/jg0=
 github.com/redis/go-redis/v9 v9.6.1 h1:HHDteefn6ZkTtY5fGUE8tj8uy85AHk6zP7CpzIAM0y4=
 github.com/redis/go-redis/v9 v9.6.1/go.mod h1:0C0c6ycQsdpVNQpxb1njEQIqkx5UcsM8FJCQLgE9+RA=
-golang.org/x/text v0.17.0 h1:XtiM5bkSOt+ewxlOE/aE/AKEHibwj/6gvWMl9Rsh0Qc=
-golang.org/x/text v0.17.0/go.mod h1:BuEKDfySbSR4drPmRPG/7iBdf8hvFMuRexcpahXilzY=
+golang.org/x/text v0.18.0 h1:XvMDiNzPAl0jr17s6W9lcaIhGUfUORdGCNsuLmPG224=
+golang.org/x/text v0.18.0/go.mod h1:BuEKDfySbSR4drPmRPG/7iBdf8hvFMuRexcpahXilzY=
