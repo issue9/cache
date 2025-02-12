@@ -1,6 +1,7 @@
 languages:
     - cmn-Hans
     - zh-Hans
+    - zh-CN
 messages:
     - key: cache miss
       message:
