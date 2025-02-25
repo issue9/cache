@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2017-2024 caixw
+// SPDX-FileCopyrightText: 2017-2025 caixw
 //
 // SPDX-License-Identifier: MIT
 
@@ -21,14 +21,14 @@ func TestGetOrInit(t *testing.T) {
 	a.NotNil(d)
 
 	var v1 string
-	err := cache.GetOrInit(d, "key", &v1, time.Second, func() (string, error) { return "5", nil })
+	err := cache.GetOrInit(d, "key", &v1, time.Second, func(v *string) error { *v = "5"; return nil })
 	a.NotError(err).
 		Equal(v1, "5")
 
 	a.NotError(d.Set("key", "10", cache.Forever))
 
 	var v2 string
-	err = cache.GetOrInit(d, "key", &v2, time.Second, func() (string, error) { return "10", nil })
+	err = cache.GetOrInit(d, "key", &v2, time.Second, func(v *string) error { *v = "10"; return nil })
 	a.NotError(err).
 		Equal(v2, "10")
 }

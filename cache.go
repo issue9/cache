@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2017-2024 caixw
+// SPDX-FileCopyrightText: 2017-2025 caixw
 //
 // SPDX-License-Identifier: MIT
 
@@ -101,21 +101,16 @@ func ErrCacheMiss() error { return errCacheMiss }
 // 在缓存不存在时，会尝试调用 init 初始化，并调用 [Cache.Set] 存入缓存。
 //
 // key 和 v 相当于调用 [Cache.Get] 的参数；
-// 如果 [Cache.Get] 返回 [ErrCacheMiss]，那么将调用 init 方法初始化值并写入缓存，
-// 最后再调用 [Cache.Get] 返回值。
-func GetOrInit[T any](cache Cache, key string, v *T, ttl time.Duration, init func() (T, error)) error {
+// 如果 [Cache.Get] 返回 [ErrCacheMiss]，那么将调用 init 方法初始化并写入缓存。
+func GetOrInit[T any](cache Cache, key string, v *T, ttl time.Duration, init func(*T) error) error {
 	switch err := cache.Get(key, v); {
 	case err == nil:
 		return nil
 	case errors.Is(err, ErrCacheMiss()):
-		val, err := init()
-		if err != nil {
+		if err := init(v); err != nil {
 			return err
 		}
-		if err := cache.Set(key, val, ttl); err != nil {
-			return err
-		}
-		return cache.Get(key, v) // 依然有可能返回 [ErrCacheMiss]
+		return cache.Set(key, *v, ttl)
 	default:
 		return err
 	}
