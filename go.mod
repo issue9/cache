@@ -5,8 +5,8 @@ go 1.23.0
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
 	github.com/issue9/assert/v4 v4.3.1
-	github.com/issue9/localeutil v0.29.2
-	github.com/redis/go-redis/v9 v9.7.0
+	github.com/issue9/localeutil v0.29.3
+	github.com/redis/go-redis/v9 v9.7.1
 )
 
 require (
