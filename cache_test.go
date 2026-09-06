@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2017-2025 caixw
+// SPDX-FileCopyrightText: 2017-2026 caixw
 //
 // SPDX-License-Identifier: MIT
 
@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/issue9/assert/v4"
+	"github.com/issue9/assert/v5"
 
 	"github.com/issue9/cache"
 	"github.com/issue9/cache/caches/memory"
