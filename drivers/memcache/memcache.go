@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2017-2024 caixw
+// SPDX-FileCopyrightText: 2017-2026 caixw
 //
 // SPDX-License-Identifier: MIT
 
@@ -12,7 +12,7 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 
 	"github.com/issue9/cache"
-	"github.com/issue9/cache/caches"
+	"github.com/issue9/cache/drivers"
 )
 
 type memcacheDriver struct {
@@ -36,11 +36,11 @@ func (d *memcacheDriver) Get(key string, val any) error {
 		return err
 	}
 
-	return caches.Unmarshal(item.Value, val)
+	return drivers.Unmarshal(item.Value, val)
 }
 
 func (d *memcacheDriver) Set(key string, val any, ttl time.Duration) error {
-	bs, err := caches.Marshal(val)
+	bs, err := drivers.Marshal(val)
 	if err != nil {
 		return err
 	}

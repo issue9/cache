@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2017-2024 caixw
+// SPDX-FileCopyrightText: 2017-2026 caixw
 //
 // SPDX-License-Identifier: MIT
 
@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/issue9/cache"
-	"github.com/issue9/cache/caches"
+	"github.com/issue9/cache/drivers"
 )
 
 type memoryDriver struct {
@@ -31,7 +31,7 @@ func New() cache.Driver { return &memoryDriver{items: &sync.Map{}} }
 
 func (d *memoryDriver) Get(key string, v any) error {
 	if item, found := d.findItem(key); found {
-		return caches.Unmarshal(item.val, v)
+		return drivers.Unmarshal(item.val, v)
 	}
 	return cache.ErrCacheMiss()
 }
@@ -54,7 +54,7 @@ func (d *memoryDriver) findItem(key string) (*item, bool) {
 func (d *memoryDriver) Set(key string, val any, ttl time.Duration) error {
 	i, found := d.findItem(key)
 	if !found {
-		bs, err := caches.Marshal(val)
+		bs, err := drivers.Marshal(val)
 		if err != nil {
 			return err
 		}
@@ -67,7 +67,7 @@ func (d *memoryDriver) Set(key string, val any, ttl time.Duration) error {
 		return nil
 	}
 
-	bs, err := caches.Marshal(val)
+	bs, err := drivers.Marshal(val)
 	if err == nil {
 		i.expire = time.Now().Add(i.dur)
 		i.val = bs

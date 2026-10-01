@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2017-2024 caixw
+// SPDX-FileCopyrightText: 2017-2026 caixw
 //
 // SPDX-License-Identifier: MIT
 
@@ -13,7 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/issue9/cache"
-	"github.com/issue9/cache/caches"
+	"github.com/issue9/cache/drivers"
 )
 
 type redisDriver struct {
@@ -61,11 +61,11 @@ func (d *redisDriver) Get(key string, val any) error {
 		return err
 	}
 
-	return caches.Unmarshal(bs, val)
+	return drivers.Unmarshal(bs, val)
 }
 
 func (d *redisDriver) Set(key string, val any, ttl time.Duration) error {
-	bs, err := caches.Marshal(val)
+	bs, err := drivers.Marshal(val)
 	if err != nil {
 		return err
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/issue9/assert/v5"
 
 	"github.com/issue9/cache"
-	"github.com/issue9/cache/caches/memory"
+	"github.com/issue9/cache/drivers/memory"
 )
 
 func TestGetOrInit(t *testing.T) {
