@@ -88,9 +88,6 @@ type Driver interface {
 
 	// Close 关闭客户端
 	Close() error
-
-	// Driver 关联的底层驱动实例
-	Driver() any
 }
 
 // ErrCacheMiss 当不存在缓存项时返回的错误

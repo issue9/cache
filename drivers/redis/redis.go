@@ -83,8 +83,6 @@ func (d *redisDriver) Clean() error { return d.client.FlushDB(context.Background
 
 func (d *redisDriver) Close() error { return d.client.Close() }
 
-func (d *redisDriver) Driver() any { return d.client }
-
 func (d *redisDriver) Ping() error { return d.client.Ping(context.Background()).Err() }
 
 func (d *redisDriver) Touch(key string, ttl time.Duration) (err error) {

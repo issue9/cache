@@ -26,7 +26,11 @@ type item struct {
 
 // New 声明一个内存缓存
 //
-// [cache.Driver.Driver] 的返回类型为 [sync.Map]。
+// 虽是基于内存的缓存，但是操作的每一份数据都是由经由
+// [drivers.Marshal] 和 [drivers.Unmarshal] 编码的数据副本，
+// 不会相互影响。
+//
+// NOTE: 返回的实际类型为 [sync.Map]。
 func New() cache.Driver { return &memoryDriver{items: &sync.Map{}} }
 
 func (d *memoryDriver) Get(key string, v any) error {
@@ -94,8 +98,6 @@ func (d *memoryDriver) Clean() error {
 }
 
 func (d *memoryDriver) Close() error { return d.Clean() }
-
-func (d *memoryDriver) Driver() any { return d.items }
 
 func (d *memoryDriver) Ping() error { return nil }
 

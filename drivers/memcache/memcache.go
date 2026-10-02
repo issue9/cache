@@ -68,8 +68,6 @@ func (d *memcacheDriver) Clean() error { return d.client.DeleteAll() }
 
 func (d *memcacheDriver) Close() error { return d.client.Close() }
 
-func (d *memcacheDriver) Driver() any { return d.client }
-
 func (d *memcacheDriver) Ping() error { return d.client.Ping() }
 
 func (d *memcacheDriver) Touch(key string, ttl time.Duration) (err error) {
