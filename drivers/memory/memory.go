@@ -131,8 +131,7 @@ func (d *memoryDriver) Counter(key string, ttl time.Duration) (n uint64, f cache
 
 		var num uint64
 		if i, found := d.items.Load(key); found {
-			num, err = strconv.ParseUint(string(i.(*item).val), 10, 64)
-			if err != nil {
+			if num, err = strconv.ParseUint(string(i.(*item).val), 10, 64); err != nil {
 				return 0, err
 			}
 		} else {
