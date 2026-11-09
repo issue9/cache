@@ -7,7 +7,7 @@ package memcache
 import (
 	"testing"
 
-	"github.com/issue9/assert/v5"
+	"github.com/issue9/assert/v6"
 
 	"github.com/issue9/cache"
 	"github.com/issue9/cache/cachetest"
