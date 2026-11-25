@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2017-2025 caixw
+// SPDX-FileCopyrightText: 2017-2026 caixw
 //
 // SPDX-License-Identifier: MIT
 
