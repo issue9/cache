@@ -107,6 +107,20 @@ func Basic(a *assert.Assertion, c cache.Driver) {
 	a.False(c.Exists("k1"), "clean 之后 k1 依然存在").
 		False(c.Exists("k2"), "clean 之后 k2 依然存在").
 		False(c.Exists("k3"), "clean 之后 k3 依然存在")
+
+	// swap
+	a.NotError(c.Set("k1", 123, time.Second))
+	var old, new int
+	a.NotError(c.Swap("k1", &old, 456, time.Second)).
+		Equal(old, 123).
+		NotError(c.Get("k1", &new)).
+		Equal(new, 456)
+
+	// pop
+	a.NotError(c.Set("k1", 123, time.Second))
+	a.NotError(c.Pop("k1", &old)).
+		Equal(old, 123).
+		Equal(c.Get("k1", &old), cache.ErrCacheMiss())
 }
 
 type object struct {

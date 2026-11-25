@@ -33,7 +33,6 @@ return (cnt < 0 and 0 or cnt)
 // NewFromURL 声明基于 [redis] 的缓存系统
 //
 // url 为符合 [Redis URI scheme] 的字符串。
-// [cache.Driver.Driver] 的返回类型为 [redis.Client]。
 //
 // [Redis URI scheme]: https://www.iana.org/assignments/uri-schemes/prov/redis
 // [redis]: https://redis.io/
@@ -70,6 +69,34 @@ func (d *redisDriver) Set(key string, val any, ttl time.Duration) error {
 		return err
 	}
 	return d.client.Set(context.Background(), key, bs, ttl).Err()
+}
+
+func (d *redisDriver) Swap(key string, old, new any, ttl time.Duration) error {
+	bs, err := drivers.Marshal(new)
+	if err != nil {
+		return err
+	}
+
+	val, err := d.client.SetArgs(context.Background(), key, bs, redis.SetArgs{Get: true}).Bytes()
+	if errors.Is(err, redis.Nil) {
+		return cache.ErrCacheMiss()
+	} else if err != nil {
+		return err
+	}
+
+	return drivers.Unmarshal(val, old)
+}
+
+func (d *redisDriver) Pop(key string, old any) error {
+	val, err := d.client.GetDel(context.Background(), key).Bytes()
+
+	if errors.Is(err, redis.Nil) {
+		return cache.ErrCacheMiss()
+	} else if err != nil {
+		return err
+	}
+
+	return drivers.Unmarshal(val, old)
 }
 
 func (d *redisDriver) Delete(key string) error { return d.client.Del(context.Background(), key).Err() }

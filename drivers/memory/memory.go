@@ -29,8 +29,6 @@ type item struct {
 // 虽是基于内存的缓存，但是操作的每一份数据都是由经由
 // [drivers.Marshal] 和 [drivers.Unmarshal] 编码的数据副本，
 // 不会相互影响。
-//
-// NOTE: 返回的实际类型为 [sync.Map]。
 func New() cache.Driver { return &memoryDriver{items: &sync.Map{}} }
 
 func (d *memoryDriver) Get(key string, v any) error {
@@ -82,6 +80,32 @@ func (d *memoryDriver) Set(key string, val any, ttl time.Duration) error {
 func (d *memoryDriver) Delete(key string) error {
 	d.items.Delete(key)
 	return nil
+}
+
+func (d *memoryDriver) Swap(key string, old, new any, ttl time.Duration) error {
+	bs, err := drivers.Marshal(new)
+	if err != nil {
+		return err
+	}
+
+	i, found := d.items.Swap(key, &item{
+		val:    bs,
+		dur:    ttl,
+		expire: time.Now().Add(ttl),
+	})
+
+	if found {
+		return drivers.Unmarshal(i.(*item).val, old)
+	}
+
+	return cache.ErrCacheMiss()
+}
+
+func (d *memoryDriver) Pop(key string, old any) error {
+	if i, found := d.items.LoadAndDelete(key); found {
+		return drivers.Unmarshal(i.(*item).val, old)
+	}
+	return cache.ErrCacheMiss()
 }
 
 func (d *memoryDriver) Exists(key string) bool {

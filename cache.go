@@ -44,6 +44,18 @@ type Cache interface {
 	// Exists 判断一个缓存项是否存在
 	Exists(string) bool
 
+	// Swap 将 new 存入并取旧值放在 old 上
+	//
+	// 相当于同时调用了 [Cache.Get] 和 [Cache.Set] 方法。
+	// 当 key 指向的值不存在时应该返回 [ErrCacheMiss]。
+	Swap(key string, old any, new any, ttl time.Duration) error
+
+	// Pop 获取值并删除该值
+	//
+	// 相当于同时调用了 [Cache.Get] 和 [Cache.Delete] 方法。
+	// 当 key 指向的值不存在时应该返回 [ErrCacheMiss]。
+	Pop(string, any) error
+
 	// Touch 重新设置缓存项的过期时间
 	//
 	// 如果不存在该项，不会返回 [ErrCacheMiss]，而是 nil。

@@ -21,7 +21,7 @@ type memcacheDriver struct {
 
 // New 声明基于 [memcached] 的缓存系统
 //
-// [cache.Driver.Driver] 的返回类型为 [memcache.Client]。
+// NOTE: Swap 和 Pop 当前实例并非是原子操作。
 //
 // [memcached]: https://memcached.org/
 func New(addr ...string) cache.Driver {
@@ -57,6 +57,39 @@ func (d *memcacheDriver) Delete(key string) error {
 		return err
 	}
 	return nil
+}
+
+func (d *memcacheDriver) Swap(key string, old, new any, ttl time.Duration) (err error) {
+	defer func() {
+		if errors.Is(err, memcache.ErrCacheMiss) {
+			err = cache.ErrCacheMiss()
+		}
+	}()
+
+	var item *memcache.Item
+	if item, err = d.client.Get(key); err != nil {
+		return
+	}
+
+	oldBytes := item.Value
+
+	if item.Value, err = drivers.Marshal(new); err != nil {
+		return
+	}
+
+	if err = d.client.CompareAndSwap(item); err != nil {
+		return
+	}
+
+	err = drivers.Unmarshal(oldBytes, old) // 赋值给 err，交由 defer 统一处理
+	return err
+}
+
+func (d *memcacheDriver) Pop(key string, old any) error {
+	if err := d.Get(key, old); err != nil {
+		return err
+	}
+	return d.Delete(key)
 }
 
 func (d *memcacheDriver) Exists(key string) bool {

@@ -29,6 +29,12 @@ func (p *prefix) Set(key string, val any, seconds time.Duration) error {
 	return p.cache.Set(p.prefix+key, val, seconds)
 }
 
+func (p *prefix) Swap(key string, old, new any, ttl time.Duration) error {
+	return p.cache.Swap(p.prefix+key, old, new, ttl)
+}
+
+func (p *prefix) Pop(key string, v any) error { return p.cache.Pop(p.prefix+key, v) }
+
 func (p *prefix) Delete(key string) error { return p.cache.Delete(p.prefix + key) }
 
 func (p *prefix) Exists(key string) bool { return p.cache.Exists(p.prefix + key) }

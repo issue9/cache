@@ -20,17 +20,21 @@ func BenchCounter(b *testing.B, d cache.Driver) {
 	a.NotError(err).Zero(c).NotNil(set).False(found)
 
 	b.Run("incr", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			_, err := set(1)
-			a.NotError(err)
+		b.ReportAllocs()
+		var err error
+		for b.Loop() {
+			_, err = set(1)
 		}
+		a.NotError(err)
 	})
 
 	b.Run("decr", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			_, err := set(-1)
-			a.NotError(err)
+		b.ReportAllocs()
+		var err error
+		for b.Loop() {
+			_, err = set(-1)
 		}
+		a.NotError(err)
 	})
 }
 
@@ -39,27 +43,40 @@ func BenchBasic(b *testing.B, c cache.Driver) {
 	a := assert.New(b, false)
 
 	b.Run("set-string", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			a.NotError(c.Set("s1", "str", cache.Forever))
+		b.ReportAllocs()
+		var err error
+		for b.Loop() {
+			err = c.Set("s1", "str", cache.Forever)
 		}
+		a.NotError(err)
 	})
 	b.Run("get-string", func(b *testing.B) {
 		var v string
-		for i := 0; i < b.N; i++ {
-			a.NotError(c.Get("s1", &v))
+		b.ReportAllocs()
+		var err error
+		for b.Loop() {
+			err = c.Get("s1", &v)
 		}
+		a.NotError(err)
 	})
 
 	b.Run("set-int", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			a.NotError(c.Set("i1", 123, cache.Forever))
+		b.ReportAllocs()
+		var err error
+		for b.Loop() {
+			err = c.Set("i1", 123, cache.Forever)
 		}
+		a.NotError(err)
 	})
+
 	b.Run("get-int", func(b *testing.B) {
 		var v int
-		for i := 0; i < b.N; i++ {
-			a.NotError(c.Get("i1", &v))
+		b.ReportAllocs()
+		var err error
+		for b.Loop() {
+			err = c.Get("i1", &v)
 		}
+		a.NotError(err)
 	})
 }
 
@@ -69,27 +86,40 @@ func BenchObject(b *testing.B, c cache.Driver) {
 
 	b.Run("set-time", func(b *testing.B) {
 		now := time.Now()
-		for i := 0; i < b.N; i++ {
-			a.NotError(c.Set("t1", now, cache.Forever))
+		b.ReportAllocs()
+		var err error
+		for b.Loop() {
+			err = c.Set("t1", now, cache.Forever)
 		}
+		a.NotError(err)
 	})
+
 	b.Run("get-time", func(b *testing.B) {
 		var v time.Time
-		for i := 0; i < b.N; i++ {
-			a.NotError(c.Get("t1", &v))
+		b.ReportAllocs()
+		var err error
+		for b.Loop() {
+			err = c.Get("t1", &v)
 		}
+		a.NotError(err)
 	})
 
 	b.Run("set-object", func(b *testing.B) {
 		obj := &object{Name: "x"}
-		for i := 0; i < b.N; i++ {
-			a.NotError(c.Set("o1", obj, cache.Forever))
+		b.ReportAllocs()
+		var err error
+		for b.Loop() {
+			err = c.Set("o1", obj, cache.Forever)
 		}
+		a.NotError(err)
 	})
 	b.Run("get-object", func(b *testing.B) {
 		var obj object
-		for i := 0; i < b.N; i++ {
-			a.NotError(c.Get("o1", &obj))
+		b.ReportAllocs()
+		var err error
+		for b.Loop() {
+			err = c.Get("o1", &obj)
 		}
+		a.NotError(err)
 	})
 }
