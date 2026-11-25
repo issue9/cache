@@ -54,27 +54,17 @@ func (d *memoryDriver) findItem(key string) (*item, bool) {
 }
 
 func (d *memoryDriver) Set(key string, val any, ttl time.Duration) error {
-	i, found := d.findItem(key)
-	if !found {
-		bs, err := drivers.Marshal(val)
-		if err != nil {
-			return err
-		}
-
-		d.items.Store(key, &item{
-			val:    bs,
-			dur:    ttl,
-			expire: time.Now().Add(ttl),
-		})
-		return nil
-	}
-
 	bs, err := drivers.Marshal(val)
-	if err == nil {
-		i.expire = time.Now().Add(i.dur)
-		i.val = bs
+	if err != nil {
+		return err
 	}
-	return err
+
+	d.items.Store(key, &item{
+		val:    bs,
+		dur:    ttl,
+		expire: time.Now().Add(ttl),
+	})
+	return nil
 }
 
 func (d *memoryDriver) Delete(key string) error {
@@ -95,15 +85,25 @@ func (d *memoryDriver) Swap(key string, old, new any, ttl time.Duration) error {
 	})
 
 	if found {
-		return drivers.Unmarshal(i.(*item).val, old)
+		ii := i.(*item)
+		if ii.dur > 0 && ii.expire.Before(time.Now()) {
+			d.items.Delete(key) // 如果加载项已经过期，那么应该是不能保存的，所以要删除已保存的项。
+			return cache.ErrCacheMiss()
+		}
+		return drivers.Unmarshal(ii.val, old)
 	}
 
 	return cache.ErrCacheMiss()
 }
 
-func (d *memoryDriver) Pop(key string, old any) error {
+func (d *memoryDriver) Pop(key string, val any) error {
 	if i, found := d.items.LoadAndDelete(key); found {
-		return drivers.Unmarshal(i.(*item).val, old)
+		ii := i.(*item)
+		if ii.dur > 0 && ii.expire.Before(time.Now()) {
+			d.items.Delete(key) // 如果加载项已经过期，那么应该是不能保存的，所以要删除已保存的项。
+			return cache.ErrCacheMiss()
+		}
+		return drivers.Unmarshal(ii.val, val)
 	}
 	return cache.ErrCacheMiss()
 }
@@ -127,7 +127,9 @@ func (d *memoryDriver) Ping() error { return nil }
 
 func (d *memoryDriver) Touch(key string, ttl time.Duration) error {
 	if i, found := d.findItem(key); found {
-		i.expire = time.Now().Add(i.dur)
+		i.dur = ttl
+		i.expire = time.Now().Add(ttl)
+		d.items.Store(key, i)
 	}
 	return nil
 }
@@ -139,12 +141,15 @@ func (d *memoryDriver) Counter(key string, ttl time.Duration) (n uint64, f cache
 		expire: time.Now().Add(ttl),
 	})
 	if loaded {
-		exist = true
-		if n, err = strconv.ParseUint(string(i.(*item).val), 10, 64); err != nil {
-			return 0, nil, false, err
+		ii := i.(*item)
+		if ii.dur > 0 && ii.expire.Before(time.Now()) {
+			d.items.Delete(key)
+		} else {
+			exist = true
+			if n, err = strconv.ParseUint(string(ii.val), 10, 64); err != nil {
+				return 0, nil, false, err
+			}
 		}
-	} else {
-		n = 0
 	}
 
 	var locker sync.Mutex
@@ -155,7 +160,13 @@ func (d *memoryDriver) Counter(key string, ttl time.Duration) (n uint64, f cache
 
 		var num uint64
 		if i, found := d.items.Load(key); found {
-			if num, err = strconv.ParseUint(string(i.(*item).val), 10, 64); err != nil {
+			ii := i.(*item)
+			if ii.dur > 0 && ii.expire.Before(time.Now()) {
+				d.items.Delete(key)
+				return 0, cache.ErrCacheMiss()
+			}
+
+			if num, err = strconv.ParseUint(string(ii.val), 10, 64); err != nil {
 				return 0, err
 			}
 		} else {

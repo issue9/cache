@@ -76,6 +76,7 @@ func (d *memcacheDriver) Swap(key string, old, new any, ttl time.Duration) (err 
 	if item.Value, err = drivers.Marshal(new); err != nil {
 		return
 	}
+	item.Expiration = int32(ttl.Seconds())
 
 	if err = d.client.CompareAndSwap(item); err != nil {
 		return

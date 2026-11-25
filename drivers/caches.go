@@ -8,6 +8,7 @@ package drivers
 import (
 	"bytes"
 	"encoding/gob"
+	"slices"
 	"strconv"
 	"time"
 )
@@ -29,7 +30,7 @@ import (
 func Marshal(val any) ([]byte, error) {
 	switch v := val.(type) {
 	case []byte:
-		return v, nil
+		return slices.Clone(v), nil
 	case string:
 		return []byte(v), nil
 	case int:
@@ -67,7 +68,7 @@ func Marshal(val any) ([]byte, error) {
 func Unmarshal(bs []byte, val any) (err error) {
 	switch v := val.(type) {
 	case *[]byte:
-		*v = bs
+		*v = slices.Clone(bs)
 		return nil
 	case *string:
 		*v = string(bs)

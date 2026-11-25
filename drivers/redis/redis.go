@@ -77,7 +77,7 @@ func (d *redisDriver) Swap(key string, old, new any, ttl time.Duration) error {
 		return err
 	}
 
-	val, err := d.client.SetArgs(context.Background(), key, bs, redis.SetArgs{Get: true}).Bytes()
+	val, err := d.client.SetArgs(context.Background(), key, bs, redis.SetArgs{Get: true, TTL: ttl}).Bytes()
 	if errors.Is(err, redis.Nil) {
 		return cache.ErrCacheMiss()
 	} else if err != nil {

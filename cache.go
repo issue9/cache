@@ -65,10 +65,11 @@ type Cache interface {
 	//
 	// key 表示计数器在缓存中的名称，如果已经存在同名值，将采用该值，否则初始化为零。
 	// 如果 key 指定的值无法被当作数值操作，将在 f 的调用中返回相应在的错误。
-	//
 	// n 表示当前的数值；
-	// f 表示对数据进行操作的函数；
+	// f 表示对数据进行操作的函数，f 是原子操作；
 	// exist 表示该元素原来是否就存在；
+	//
+	// NOTE: 由 Counter 创建同一个 key 的多个 f 函数，各自调用可能会相互覆盖。
 	Counter(key string, ttl time.Duration) (n uint64, f SetCounterFunc, exist bool, err error)
 }
 

@@ -94,10 +94,41 @@ func Basic(a *assert.Assertion, c cache.Driver) {
 	a.NotError(c.Set("k1", 123, time.Second))
 	a.NotError(c.Set("k2", 456, time.Second))
 	a.NotError(c.Set("k3", 789, time.Second))
+
+	a.NotError(c.Set("ttl-from-forever", 1, cache.Forever))
+	a.NotError(c.Set("ttl-from-forever", 2, time.Second))
+	a.NotError(c.Set("expired-pop", 1, time.Second))
+	a.NotError(c.Set("expired-swap", 1, time.Second))
+	a.NotError(c.Set("expired-counter", uint64(5), time.Second))
+
 	time.Sleep(2 * time.Second)
 	a.False(c.Exists("k1"), "k1 超时且未被回收")
 	a.False(c.Exists("k2"), "k2 超时且未被回收")
 	a.False(c.Exists("k3"), "k3 超时且未被回收")
+	a.False(c.Exists("ttl-from-forever"), "更新后的 TTL 未生效")
+
+	var expired int
+	a.ErrorIs(c.Pop("expired-pop", &expired), cache.ErrCacheMiss())
+	a.ErrorIs(c.Swap("expired-swap", &expired, 2, time.Second), cache.ErrCacheMiss())
+	counter, _, found, err := c.Counter("expired-counter", time.Second)
+	a.NotError(err).Zero(counter).False(found)
+
+	a.NotError(c.Set("ttl-to-forever", 1, time.Second))
+	time.Sleep(100 * time.Millisecond)
+	a.NotError(c.Set("ttl-to-forever", 2, cache.Forever))
+	time.Sleep(1200 * time.Millisecond)
+	a.True(c.Exists("ttl-to-forever"), "改为 Forever 后缓存仍过期")
+
+	a.NotError(c.Set("touch-ttl", 1, time.Second))
+	time.Sleep(100 * time.Millisecond)
+	a.NotError(c.Touch("touch-ttl", 2*time.Second))
+	time.Sleep(1200 * time.Millisecond)
+	a.True(c.Exists("touch-ttl"), "Touch 未应用新的 TTL")
+
+	a.NotError(c.Set("swap-ttl", 1, cache.Forever))
+	a.NotError(c.Swap("swap-ttl", &expired, 2, time.Second))
+	time.Sleep(1200 * time.Millisecond)
+	a.False(c.Exists("swap-ttl"), "Swap 未应用 TTL")
 
 	// Clean
 	a.NotError(c.Set("k1", 123, time.Second))
@@ -121,6 +152,16 @@ func Basic(a *assert.Assertion, c cache.Driver) {
 	a.NotError(c.Pop("k1", &old)).
 		Equal(old, 123).
 		Equal(c.Get("k1", &old), cache.ErrCacheMiss())
+
+	input := []byte("original")
+	a.NotError(c.Set("byte-slice", input, cache.Forever))
+	input[0] = 'X'
+	var got []byte
+	a.NotError(c.Get("byte-slice", &got)).Equal(string(got), "original")
+
+	got[1] = 'X'
+	var gotAgain []byte
+	a.NotError(c.Get("byte-slice", &gotAgain)).Equal(string(gotAgain), "original")
 }
 
 type object struct {
