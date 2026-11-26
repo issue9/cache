@@ -6,6 +6,7 @@ package memcache
 
 import (
 	"testing"
+	"time"
 
 	"github.com/issue9/assert/v6"
 
@@ -14,6 +15,34 @@ import (
 )
 
 var _ cache.Cache = &memcacheDriver{}
+
+func TestCalcTTL(t *testing.T) {
+	a := assert.New(t, false)
+
+	a.PanicString(func() {
+		calcTTL(time.Duration(1<<63 - 1))
+	}, "TTL 转换为秒数时不能大于 math.MaxInt32")
+
+	tests := []struct {
+		name string
+		ttl  time.Duration
+		want int32
+	}{
+		{name: "forever", ttl: 0, want: 0},
+		{name: "nano second", ttl: time.Nanosecond, want: 1},
+		{name: "1 second", ttl: time.Second, want: 1},
+		{name: "fractional seconds", ttl: 1500 * time.Millisecond, want: 2},
+		{name: "month boundary", ttl: month, want: int32(month / time.Second)},
+		{name: "round up to month boundary", ttl: month - time.Nanosecond, want: int32(month / time.Second)},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a := a.New(t)
+			a.Equal(tt.want, calcTTL(tt.ttl))
+		})
+	}
+}
 
 func BenchmarkMemcache(b *testing.B) {
 	a := assert.New(b, false)

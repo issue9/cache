@@ -16,7 +16,7 @@ import (
 // NOTE: 如果支持多种编码方式，为了编码和解码是同一种方式，需要对象同时实现编码和解码，比如
 //  type Serializer interface {
 //      encoding.TextMarshaler
-//      encoding.TextUnarshaler
+//      encoding.TextUnmarshaler
 //  }
 // 但是大部分实现者的对 Marshal 和 Unmarshal 的 receiver 是不一样的，
 // 导致在 Marshal 和 Unmarshal 对是否实现接口的判断结果也不同。

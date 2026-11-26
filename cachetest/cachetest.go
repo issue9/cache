@@ -121,8 +121,8 @@ func Basic(a *assert.Assertion, c cache.Driver) {
 
 	a.NotError(c.Set("touch-ttl", 1, time.Second))
 	time.Sleep(100 * time.Millisecond)
-	a.NotError(c.Touch("touch-ttl", 2*time.Second))
-	time.Sleep(1200 * time.Millisecond)
+	a.NotError(c.Touch("touch-ttl", 4*time.Second))
+	time.Sleep(2 * time.Second)
 	a.True(c.Exists("touch-ttl"), "Touch 未应用新的 TTL")
 
 	a.NotError(c.Set("swap-ttl", 1, cache.Forever))

@@ -7,6 +7,7 @@ package memcache
 
 import (
 	"errors"
+	"math"
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -40,6 +41,8 @@ func (d *memcacheDriver) Get(key string, val any) error {
 }
 
 func (d *memcacheDriver) Set(key string, val any, ttl time.Duration) error {
+	expiration := calcTTL(ttl)
+
 	bs, err := drivers.Marshal(val)
 	if err != nil {
 		return err
@@ -48,7 +51,7 @@ func (d *memcacheDriver) Set(key string, val any, ttl time.Duration) error {
 	return d.client.Set(&memcache.Item{
 		Key:        key,
 		Value:      bs,
-		Expiration: int32(ttl.Seconds()),
+		Expiration: expiration,
 	})
 }
 
@@ -76,7 +79,7 @@ func (d *memcacheDriver) Swap(key string, old, new any, ttl time.Duration) (err 
 	if item.Value, err = drivers.Marshal(new); err != nil {
 		return
 	}
-	item.Expiration = int32(ttl.Seconds())
+	item.Expiration = calcTTL(ttl)
 
 	if err = d.client.CompareAndSwap(item); err != nil {
 		return
@@ -105,15 +108,13 @@ func (d *memcacheDriver) Close() error { return d.client.Close() }
 func (d *memcacheDriver) Ping() error { return d.client.Ping() }
 
 func (d *memcacheDriver) Touch(key string, ttl time.Duration) (err error) {
-	if err = d.client.Touch(key, int32(ttl.Seconds())); errors.Is(err, memcache.ErrCacheMiss) {
+	if err = d.client.Touch(key, calcTTL(ttl)); errors.Is(err, memcache.ErrCacheMiss) {
 		err = nil
 	}
 	return err
 }
 
 func (d *memcacheDriver) Counter(key string, ttl time.Duration) (n uint64, f cache.SetCounterFunc, exist bool, err error) {
-	t := int32(ttl.Seconds())
-
 	if n, err = cache.Get[uint64](d, key); errors.Is(err, cache.ErrCacheMiss()) {
 		err = d.Set(key, 0, ttl)
 		n = 0
@@ -130,8 +131,8 @@ func (d *memcacheDriver) Counter(key string, ttl time.Duration) (n uint64, f cac
 			return cache.Get[uint64](d, key)
 		case n > 0:
 			v, err := d.client.Increment(key, uint64(n))
-			if err == nil && t > 0 {
-				err = d.client.Touch(key, t)
+			if err == nil {
+				err = d.client.Touch(key, calcTTL(ttl))
 			}
 
 			if errors.Is(err, memcache.ErrCacheMiss) {
@@ -140,8 +141,8 @@ func (d *memcacheDriver) Counter(key string, ttl time.Duration) (n uint64, f cac
 			return v, err
 		case n < 0:
 			v, err := d.client.Decrement(key, uint64(-n))
-			if err == nil && t > 0 {
-				err = d.client.Touch(key, t)
+			if err == nil {
+				err = d.client.Touch(key, calcTTL(ttl))
 			}
 
 			if errors.Is(err, memcache.ErrCacheMiss) {
@@ -150,4 +151,30 @@ func (d *memcacheDriver) Counter(key string, ttl time.Duration) (n uint64, f cac
 			return v, err
 		}
 	}, exist, nil
+}
+
+const month = 30 * 24 * 60 * 60 * time.Second
+
+func calcTTL(ttl time.Duration) int32 {
+	if ttl == 0 {
+		return cache.Forever
+	}
+
+	if ttl > month {
+		expiresAt := time.Now().Add(ttl)
+		seconds := expiresAt.Unix()
+		if expiresAt.Nanosecond() > 0 {
+			seconds++
+		}
+		if seconds > math.MaxInt32 {
+			panic("TTL 转换为秒数时不能大于 math.MaxInt32")
+		}
+		return int32(seconds)
+	}
+
+	seconds := int64(ttl / time.Second)
+	if ttl%time.Second != 0 {
+		seconds++
+	}
+	return int32(seconds)
 }
